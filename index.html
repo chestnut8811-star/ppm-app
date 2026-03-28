@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- ======================================================
+     PWA メタタグ
+     ====================================================== -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1a73e8">
+
+<!-- iOS ホーム画面追加対応 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PPM判定">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+<!-- Android / その他 -->
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+
+<title>PPM判定アプリ</title>
+<style>
+/* ============================================================
+   CSS 変数
+   ============================================================ */
+:root {
+  --c-bg:        #f2f2f7;
+  --c-card:      #ffffff;
+  --c-border:    #e0e0e5;
+  --c-text:      #1c1c1e;
+  --c-muted:     #8e8e93;
+  --c-primary:   #1a73e8;
+  --c-green:     #34c759;
+  --c-orange:    #ff9500;
+  --c-red:       #ff3b30;
+  --c-ai:        #6366f1;
+  --c-ai-bg:     #eef2ff;
+  --radius-card: 16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+    "Noto Sans JP", sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  line-height: 1.55;
+  min-height: 100%;
+  padding-bottom: calc(72px + var(--safe-bottom));
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ============================================================
+   ヘッダー
+   ============================================================ */
+.app-header {
+  background: var(--c-primary);
+  color: #fff;
+  padding: 12px 16px 11px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+}
+.app-header h1  { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.02em; }
+.app-header .subtitle { font-size: 0.68rem; opacity: 0.88; margin-top: 2px; }
+
+/* オフラインバナー */
+.offline-banner {
+  display: none;
+  background: #ff9500;
+  color: #fff;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+}
+.offline-banner.show { display: block; }
+
+/* インストールバナー */
+.install-banner {
+  display: none;
+  background: #eef2ff;
+  border-bottom: 1px solid #c7d2fe;
+  padding: 10px 16px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #3730a3;
+}
+.install-banner.show { display: flex; }
+.install-banner .ib-text { flex: 1; font-weight: 600; }
+.install-banner .ib-btn {
+  background: var(--c-ai);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.install-banner .ib-close {
+  background: none;
+  border: none;
+  color: var(--c-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   スクロールボディ
+   ============================================================ */
+.scroll-body {
+  padding: 12px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================
+   カード
+   ============================================================ */
+.card {
+  background: var(--c-card);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--c-border);
+}
+.card-header.no-toggle { cursor: default; }
+.card-title { font-size: 0.88rem; font-weight: 700; color: var(--c-primary); }
+.card-title.ai { color: var(--c-ai); }
+.chevron {
+  width: 18px; height: 18px;
+  border-right: 2.5px solid var(--c-muted);
+  border-bottom: 2.5px solid var(--c-muted);
+  transform: rotate(45deg);
+  transition: transform 0.22s ease;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.chevron.open { transform: rotate(-135deg); }
+.card-body { padding: 14px 16px 16px; }
+.card-body.collapsed { display: none; }
+
+/* ============================================================
+   フォーム
+   ============================================================ */
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+label.field-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+input[type="number"],
+input[type="password"],
+select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: 16px; /* iOS ズーム防止 */
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--c-text);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%238e8e93' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 38px;
+}
+input:focus, select:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.14);
+}
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ============================================================
+   メトリック（BSA / BMI）
+   ============================================================ */
+.metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.metric-card {
+  background: var(--c-bg);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.metric-card .m-label {
+  font-size: 0.66rem;
+  color: var(--c-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.metric-card .m-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--c-primary);
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   警告
+   ============================================================ */
+.warn-box {
+  background: #fff8e1;
+  border: 1px solid #ffca28;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 0.8rem;
+  color: #795548;
+  margin-bottom: 10px;
+}
+
+/* ============================================================
+   判定バナー
+   ============================================================ */
+.result-banner {
+  border-radius: 14px;
+  padding: 18px 16px 16px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+.result-banner.green  { background: linear-gradient(135deg, #34c759, #27ae60); }
+.result-banner.orange { background: linear-gradient(135deg, #ff9500, #e67e00); }
+.result-banner.red    { background: linear-gradient(135deg, #ff3b30, #c0392b); }
+.result-banner .ieoa-sub { font-size: 0.85rem; opacity: 0.92; margin-top: 5px; font-weight: 600; }
+
+/* 詳細リスト */
+.detail-list {
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.detail-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 0.855rem;
+  border-bottom: 1px solid var(--c-border);
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-row dt { color: var(--c-muted); font-weight: 700; width: 46%; flex-shrink: 0; font-size: 0.8rem; }
+.detail-row dd { flex: 1; font-weight: 500; word-break: break-word; }
+.threshold-note { font-size: 0.7rem; color: var(--c-muted); text-align: center; line-height: 1.55; padding: 0 4px; }
+
+/* ============================================================
+   音声コントロール
+   ============================================================ */
+.voice-section {
+  border-top: 1px solid var(--c-border);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.voice-title { font-size: 0.72rem; font-weight: 700; color: var(--c-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+.voice-row { display: flex; gap: 8px; align-items: center; }
+.btn-speak {
+  flex: 1; min-height: 46px;
+  background: #0ea5e9; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-stop {
+  flex: 1; min-height: 46px;
+  background: #64748b; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.auto-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; font-size: 0.82rem; color: var(--c-muted);
+}
+.toggle-switch { position: relative; width: 44px; height: 26px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: #ccc; border-radius: 26px; cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: ""; position: absolute;
+  width: 20px; height: 20px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.28);
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--c-green); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.voice-rate-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; font-size: 0.78rem; color: var(--c-muted);
+}
+.voice-rate-row input[type="range"] {
+  flex: 1; min-height: auto; height: 4px;
+  border: none; border-radius: 2px; background: var(--c-border);
+  padding: 0; box-shadow: none;
+  accent-color: var(--c-primary);
+}
+.speaking-indicator {
+  display: flex; align-items: center; gap: 4px;
+  color: #0ea5e9; font-size: 0.78rem; font-weight: 700;
+}
+.speaking-indicator span {
+  display: inline-block; width: 4px; border-radius: 2px;
+  background: #0ea5e9; animation: wave 0.9s ease-in-out infinite;
+}
+.speaking-indicator span:nth-child(1) { height: 8px;  animation-delay: 0s; }
+.speaking-indicator span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+.speaking-indicator span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+.speaking-indicator span:nth-child(4) { height: 6px;  animation-delay: 0.45s; }
+@keyframes wave { 0%,100% { transform:scaleY(0.5); opacity:0.6; } 50% { transform:scaleY(1.3); opacity:1; } }
+
+/* ============================================================
+   AI セクション
+   ============================================================ */
+.ai-btn-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.btn-ai {
+  width: 100%; min-height: 50px;
+  background: var(--c-ai); color: #fff;
+  border: none; border-radius: 12px;
+  font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.15s;
+}
+.btn-ai:disabled { opacity: 0.45; }
+.btn-ai:active:not(:disabled) { opacity: 0.75; }
+.api-note { font-size: 0.71rem; color: var(--c-muted); line-height: 1.6; margin: -4px 0 12px; }
+.ai-card {
+  background: var(--c-ai-bg); border: 1px solid var(--c-ai);
+  border-radius: 12px; padding: 12px 14px;
+  font-size: 0.875rem; line-height: 1.75;
+  white-space: pre-wrap; word-break: break-word;
+}
+.ai-label { font-weight: 700; color: var(--c-ai); margin-bottom: 8px; font-size: 0.82rem; }
+.ai-loading { text-align: center; padding: 20px; color: var(--c-muted); font-size: 0.88rem; }
+.ai-error {
+  background: #fff0f0; border: 1px solid var(--c-red);
+  border-radius: 10px; padding: 10px 13px;
+  font-size: 0.83rem; color: var(--c-red);
+}
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2.5px solid #c7d2fe; border-top-color: var(--c-ai);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   EOA テーブル
+   ============================================================ */
+.eoa-toggle-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.88rem; color: var(--c-primary);
+  font-weight: 600; cursor: pointer; user-select: none;
+  padding: 14px 16px;
+}
+.eoa-toggle-label input { display: none; }
+.eoa-wrapper { overflow-x: auto; padding: 0 16px 14px; }
+table.eoa-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 260px; }
+table.eoa-table th, table.eoa-table td {
+  border: 1px solid var(--c-border); padding: 7px 9px; text-align: center;
+}
+table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75rem; }
+
+/* ============================================================
+   BSA直接入力
+   ============================================================ */
+.bsa-direct-row {
+  display: flex; align-items: flex-end; gap: 8px;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px dashed var(--c-border);
+}
+.bsa-direct-row .field { flex: 1; margin-bottom: 0; }
+.btn-bsa-clear {
+  min-height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--c-border); border-radius: 10px;
+  background: #fff; color: var(--c-muted);
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+.bsa-direct-note {
+  display: none; font-size: 0.72rem; font-weight: 700;
+  color: var(--c-primary); margin-top: 6px;
+}
+
+/* ============================================================
+   比較表
+   ============================================================ */
+.comp-source-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; font-size: 0.78rem; color: var(--c-muted);
+}
+.comp-source-row select {
+  min-height: 36px; font-size: 0.82rem; padding: 0 10px;
+  border-radius: 8px; width: auto; flex-shrink: 0;
+}
+.comp-group { margin-bottom: 14px; }
+.comp-group-title {
+  font-size: 0.78rem; font-weight: 700; color: var(--c-primary);
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.comp-row {
+  display: flex; align-items: center;
+  padding: 7px 6px; border-radius: 8px;
+  margin-bottom: 3px; gap: 8px;
+}
+.comp-row.c-green  { background: #e8f5e9; }
+.comp-row.c-orange { background: #fff8e1; }
+.comp-row.c-red    { background: #ffebee; }
+.comp-size  { font-size: 0.82rem; font-weight: 700; width: 70px; flex-shrink: 0; color: var(--c-text); }
+.comp-eoa   { font-size: 0.75rem; color: var(--c-muted); flex: 1; }
+.comp-ieoa  { font-size: 0.9rem; font-weight: 800; width: 46px; text-align: right; flex-shrink: 0; }
+.comp-ieoa.c-green  { color: #2e7d32; }
+.comp-ieoa.c-orange { color: #e65100; }
+.comp-ieoa.c-red    { color: #b71c1c; }
+.comp-badge {
+  font-size: 0.66rem; font-weight: 700; padding: 2px 7px;
+  border-radius: 10px; flex-shrink: 0; white-space: nowrap;
+}
+.comp-badge.c-green  { background: #c8e6c9; color: #1b5e20; }
+.comp-badge.c-orange { background: #ffe0b2; color: #bf360c; }
+.comp-badge.c-red    { background: #ffcdd2; color: #7f0000; }
+.comp-current {
+  outline: 2px solid var(--c-primary);
+  outline-offset: -1px;
+}
+.comp-no-bsa {
+  text-align: center; color: var(--c-muted);
+  font-size: 0.85rem; padding: 16px 0;
+}
+
+/* ============================================================
+   注意書き
+   ============================================================ */
+.notice {
+  background: var(--c-card); border-radius: var(--radius-card);
+  padding: 14px 16px; font-size: 0.78rem; color: var(--c-muted); line-height: 1.7;
+}
+.notice strong { color: var(--c-text); display: block; margin-bottom: 6px; }
+.notice ul { padding-left: 1.1rem; }
+.notice li { margin-bottom: 4px; }
+
+/* ============================================================
+   フローティング結果バー
+   ============================================================ */
+.floating-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 9px 14px;
+  padding-bottom: calc(9px + var(--safe-bottom));
+  background: rgba(255,255,255,0.93);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--c-border);
+  display: none; align-items: center; gap: 10px;
+  z-index: 200; box-shadow: 0 -2px 12px rgba(0,0,0,0.09);
+}
+.floating-bar.visible { display: flex; }
+.fb-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.fb-dot.green  { background: var(--c-green); }
+.fb-dot.orange { background: var(--c-orange); }
+.fb-dot.red    { background: var(--c-red); }
+.fb-text { flex: 1; font-size: 0.82rem; font-weight: 700; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-ieoa { font-size: 0.75rem; color: var(--c-muted); font-weight: 600; flex-shrink: 0; }
+.fb-scroll-btn {
+  background: var(--c-primary); color: #fff;
+  border: none; border-radius: 18px;
+  padding: 6px 13px; font-size: 0.78rem; font-weight: 700;
+  cursor: pointer; flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- オフライン通知 -->
+<div class="offline-banner" id="offlineBanner">📡 オフライン状態です。キャッシュから起動しています。</div>
+
+<!-- インストールバナー（Android / Chrome） -->
+<div class="install-banner" id="installBanner">
+  <span class="ib-text">📲 ホーム画面に追加できます</span>
+  <button class="ib-btn" onclick="installApp()">追加する</button>
+  <button class="ib-close" onclick="closeInstallBanner()">✕</button>
+</div>
+
+<!-- ヘッダー -->
+<div class="app-header">
+  <h1>🫀 PPM判定アプリ</h1>
+  <div class="subtitle">AVR（大動脈弁置換術）生体弁・機械弁サイズ選択時の Prosthesis-Patient Mismatch 簡易評価</div>
+</div>
+
+<div class="scroll-body">
+
+  <!-- ① 患者情報 -->
+  <div class="card">
+    <div class="card-header no-toggle">
+      <span class="card-title">患者情報</span>
+    </div>
+    <div class="card-body">
+      <div id="warnings"></div>
+      <div class="row-2">
+        <div class="field">
+          <label class="field-label" for="height">身長 (cm)</label>
+          <input type="number" id="height" value="165" min="50" max="250"
+                 step="0.1" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="field-label" for="weight">体重 (kg)</label>
+          <input type="number" id="weight" value="60" min="10" max="300"
+                 step="0.1" inputmode="decimal">
+        </div>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="m-label">BSA (m²)</div>
+          <div class="m-value" id="bsaValue">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">BMI (kg/m²)</div>
+          <div class="m-value" id="bmiValue">—</div>
+        </div>
+      </div>
+      <div class="bsa-direct-row">
+        <div class="field">
+          <label class="field-label" for="bsaDirect">BSA 直接入力 (m²) <span style="font-weight:400;text-transform:none;">— 任意</span></label>
+          <input type="number" id="bsaDirect" placeholder="例: 1.68"
+                 min="0.5" max="3.0" step="0.01" inputmode="decimal"
+                 oninput="updateResult()">
+        </div>
+        <button type="button" class="btn-bsa-clear" onclick="clearBsaDirect()">クリア</button>
+      </div>
+      <div class="bsa-direct-note" id="bsaDirectNote">✔ BSA直接入力値を使用中</div>
+    </div>
+  </div>
+
+  <!-- ② 術式・弁選択 -->
+  <div class="card">
+    <div class="card-header no-toggle">
+      <span class="card-title">術式・弁選択</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="field-label" for="procedure">術式</label>
+        <select id="procedure"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="source">EOA 参照元</label>
+        <select id="source">
+          <option value="manufacturer">メーカー公称値</option>
+          <option value="literature">文献採用値</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="valve">バルブ名</label>
+        <select id="valve"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="size">サイズ</label>
+        <select id="size"></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 判定結果 -->
+  <div class="card" id="resultCard">
+    <div class="card-header no-toggle">
+      <span class="card-title">判定結果</span>
+    </div>
+    <div class="card-body">
+      <div id="resultBanner"></div>
+      <dl class="detail-list" id="detailList" style="display:none;"></dl>
+      <div id="thresholdNote" class="threshold-note"></div>
+
+      <!-- 音声コントロール -->
+      <div class="voice-section" id="voiceSection" style="display:none;">
+        <div class="voice-title">🔊 音声読み上げ</div>
+        <div class="voice-row">
+          <button class="btn-speak" id="btnSpeak" onclick="speakResult()">🔊 読み上げ</button>
+          <button class="btn-stop"  id="btnStop"  onclick="stopSpeech()" style="display:none;">⏹ 停止</button>
+          <div id="speakingIndicator" style="display:none;">
+            <div class="speaking-indicator">
+              <span></span><span></span><span></span><span></span>
+              &nbsp;読み上げ中
+            </div>
+          </div>
+        </div>
+        <div class="auto-row">
+          <span>自動読み上げ</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoSpeak">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="voice-rate-row">
+          <span>速度</span>
+          <input type="range" id="voiceRate" min="0.6" max="1.5" step="0.1" value="0.95"
+                 oninput="$('voiceRateVal').textContent = parseFloat(this.value).toFixed(1)">
+          <span id="voiceRateVal">1.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 比較表（折りたたみ） -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard('compBody', this)">
+      <span class="card-title">全弁 比較表（現在のBSAで判定）</span>
+      <div class="chevron"></div>
+    </div>
+    <div class="card-body collapsed" id="compBody">
+      <div class="comp-source-row">
+        <span>EOA参照元：</span>
+        <select id="compSource" onchange="renderComparisonTable()">
+          <option value="manufacturer">メーカー公称値</option>
+          <option value="literature">文献採用値</option>
+        </select>
+      </div>
+      <div id="comparisonArea">
+        <div class="comp-no-bsa">身長・体重を入力すると全弁の判定が表示されます</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ AI アシスタント（折りたたみ） -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard('aiBody', this)">
+      <span class="card-title ai">🤖 AI アシスタント（OpenAI）</span>
+      <div class="chevron"></div>
+    </div>
+    <div class="card-body collapsed" id="aiBody">
+      <div class="field">
+        <label class="field-label" for="apiKey">OpenAI API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+      </div>
+      <p class="api-note">
+        ※ API キーはブラウザ内のみで使用され、外部サーバーには送信されません（直接 OpenAI API を呼び出します）。
+      </p>
+      <div class="ai-btn-group">
+        <button class="btn-ai" id="btnValveInfo" onclick="askAI('valve_info')">
+          🏭 バルブの説明
+        </button>
+        <button class="btn-ai" id="btnPmmAdvice" onclick="askAI('pmm_advice')">
+          📊 PPM 補足・助言
+        </button>
+        <button class="btn-ai" id="btnComprehensive" onclick="askAI('comprehensive')">
+          📝 総合コメント
+        </button>
+      </div>
+      <div id="aiResponseArea"></div>
+    </div>
+  </div>
+
+  <!-- ⑤ EOA 一覧（折りたたみ） -->
+  <div class="card">
+    <label class="eoa-toggle-label">
+      <input type="checkbox" id="showEoa">
+      📋 EOA 一覧を表示する
+    </label>
+    <div id="eoaTableArea" class="eoa-wrapper" style="display:none;"></div>
+  </div>
+
+  <!-- ⑥ 注意書き -->
+  <div class="notice">
+    <strong>⚠ 注意事項</strong>
+    <ul>
+      <li>本アプリは簡易評価用です。スクリーニング目的でのみご使用ください。</li>
+      <li>実際の臨床判断はガイドライン、文献、術前画像評価、術中判断を含めて総合的に行ってください。</li>
+      <li>EOA 値は参照元により差がありうるため、施設採用値に差し替えて運用してください。</li>
+      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。</li>
+      <li>AI アシスタントの回答は参考情報であり、臨床的意思決定の根拠にはなりません。</li>
+    </ul>
+  </div>
+
+</div><!-- /.scroll-body -->
+
+<!-- フローティング結果バー -->
+<div class="floating-bar" id="floatingBar">
+  <div class="fb-dot" id="fbDot"></div>
+  <div class="fb-text" id="fbText">—</div>
+  <div class="fb-ieoa" id="fbIeoa"></div>
+  <button class="fb-scroll-btn" onclick="scrollToResult()">結果を見る</button>
+</div>
+
+<script>
+// ============================================================
+// ■ EOA データ（PDF凡例確認済み最終版 — AVR のみ）
+// ============================================================
+// source: "manufacturer" = PDF記載値（メーカー公称値）
+//         "literature"   = 文献調整値（公称値より約3〜5%低め）
+// ============================================================
+const valveData = {
+  "AVR": {
+    "On-X (CryoLife)": {
+      "manufacturer": { "19": 1.70, "21": 2.30, "23": 2.90, "25": 3.60 },
+      "literature":   { "19": 1.65, "21": 2.23, "23": 2.82, "25": 3.50 }
+    },
+    "Avalus (アバラス)": {
+      "manufacturer": { "19": 1.40, "21": 1.57, "23": 1.97, "25": 2.12, "27": 2.50 },
+      "literature":   { "19": 1.36, "21": 1.52, "23": 1.91, "25": 2.06, "27": 2.43 }
+    },
+    "Epic Supra (エピック スープラ)": {
+      "manufacturer": { "19": 1.48, "21": 1.56, "23": 1.72 },
+      "literature":   { "19": 1.44, "21": 1.51, "23": 1.67 }
+    },
+    "Epic Standard (エピック スタンダード)": {
+      "manufacturer": { "23": 1.40, "25": 1.50, "27": 1.60 },
+      "literature":   { "23": 1.36, "25": 1.46, "27": 1.55 }
+    },
+    "PERIMOUNT Magna (マグナ)": {
+      "manufacturer": { "19": 1.58, "21": 1.90, "23": 2.07, "25": 2.33 },
+      "literature":   { "19": 1.53, "21": 1.84, "23": 2.01, "25": 2.26 }
+    },
+    "INSPIRIS RESILIA (インスピリス)": {
+      "manufacturer": { "19": 1.58, "21": 1.90, "23": 2.07, "25": 2.33 },
+      "literature":   { "19": 1.53, "21": 1.84, "23": 2.01, "25": 2.26 }
+    },
+    "Mosaic (モザイク)": {
+      "manufacturer": { "19": 1.20, "21": 1.30, "23": 1.50, "25": 1.80, "27": 2.00, "29": 2.10 },
+      "literature":   { "19": 1.16, "21": 1.26, "23": 1.46, "25": 1.75, "27": 1.94, "29": 2.04 }
+    },
+    "SJM Regent (リージェント)": {
+      "manufacturer": { "17": 1.30, "19": 1.70, "21": 2.00, "23": 2.50, "25": 2.60, "27": 3.50, "29": 3.50 },
+      "literature":   { "17": 1.26, "19": 1.65, "21": 1.94, "23": 2.43, "25": 2.52, "27": 3.40, "29": 3.40 }
+    }
+  }
+};
+
+// ============================================================
+// ■ 判定閾値（PDF凡例確認済み — バルブ別）
+// ============================================================
+// severe      : 高度PPMの境界値
+// severe_incl : true  → iEOA ≤ severe で高度PPM（境界値自体が赤）
+//               false → iEOA < severe で高度PPM（境界値自体は黄）
+// moderate    : iEOA ≥ moderate で低リスク（緑）
+// ============================================================
+const THRESHOLDS = {
+  "On-X (CryoLife)":
+    { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65"  },
+  "Avalus (アバラス)":
+    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.84", sev_label: "≤ 0.65"  },
+  "Epic Supra (エピック スープラ)":
+    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
+  "Epic Standard (エピック スタンダード)":
+    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
+  "PERIMOUNT Magna (マグナ)":
+    { severe: 0.75, severe_incl: true,  moderate: 0.85, mod_label: "0.76〜0.84", sev_label: "≤ 0.75"  },
+  "INSPIRIS RESILIA (インスピリス)":
+    { severe: 0.75, severe_incl: true,  moderate: 0.85, mod_label: "0.76〜0.84", sev_label: "≤ 0.75"  },
+  "Mosaic (モザイク)":
+    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
+  "SJM Regent (リージェント)":
+    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  }
+};
+
+const HEIGHT_MIN = 100, HEIGHT_MAX = 220;
+const WEIGHT_MIN = 20,  WEIGHT_MAX = 200;
+const SOURCE_LABELS = { manufacturer: "メーカー公称値", literature: "文献採用値" };
+
+// ============================================================
+// ■ 計算関数
+// ============================================================
+const calculateBSA = (h, w) => Math.sqrt(h * w / 3600);
+const calculateBMI = (h, w) => w / Math.pow(h / 100, 2);
+const getIEOA      = (eoa, bsa) => bsa > 0 ? eoa / bsa : 0;
+
+function judgePMM(valveName, ieoa) {
+  const th = THRESHOLDS[valveName] || { severe: 0.65, severe_incl: false, moderate: 0.85 };
+  if (ieoa >= th.moderate) return { label: "低リスク（PPMの可能性は低い）", color: "green" };
+  const isRed = th.severe_incl ? ieoa <= th.severe : ieoa < th.severe;
+  return isRed
+    ? { label: "高度PPMの可能性", color: "red" }
+    : { label: "中等度PPMの可能性", color: "orange" };
+}
+
+function validateInput(h, w) {
+  const msgs = [];
+  if (h < HEIGHT_MIN || h > HEIGHT_MAX)
+    msgs.push(`身長が範囲外です（${HEIGHT_MIN}〜${HEIGHT_MAX} cm）`);
+  if (w < WEIGHT_MIN || w > WEIGHT_MAX)
+    msgs.push(`体重が範囲外です（${WEIGHT_MIN}〜${WEIGHT_MAX} kg）`);
+  return msgs;
+}
+
+// ============================================================
+// ■ 現在の入力状態を取得
+// ============================================================
+function getCurrentState() {
+  const h    = parseFloat($("height").value) || 0;
+  const w    = parseFloat($("weight").value) || 0;
+  const proc = $("procedure").value;
+  const src  = $("source").value;
+  const valve= $("valve").value;
+  const size = $("size").value;
+  const directVal = parseFloat($("bsaDirect").value);
+  const usingDirect = !isNaN(directVal) && directVal >= 0.5 && directVal <= 3.0;
+  const bsa  = usingDirect ? directVal : calculateBSA(h, w);
+  const bmi  = calculateBMI(h, w);
+  const eoa  = valveData[proc]?.[valve]?.[src]?.[size];
+  const ieoa = eoa != null ? getIEOA(eoa, bsa) : null;
+  const pmm  = ieoa != null ? judgePMM(valve, ieoa) : null;
+  const th   = THRESHOLDS[valve] || { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65" };
+  return { h, w, bsa, bmi, proc, src, valve, size, eoa, ieoa, pmm, th, usingDirect };
+}
+
+// ============================================================
+// ■ UI ヘルパー
+// ============================================================
+const $ = (id) => document.getElementById(id);
+
+function clearBsaDirect() {
+  $("bsaDirect").value = "";
+  updateResult();
+}
+
+function populateSelect(sel, items, fmt) {
+  sel.innerHTML = "";
+  items.forEach(item => {
+    const o = document.createElement("option");
+    o.value = item;
+    o.textContent = fmt ? fmt(item) : item;
+    sel.appendChild(o);
+  });
+}
+
+function toggleCard(bodyId, header) {
+  const body = $(bodyId);
+  const ch   = header.querySelector(".chevron");
+  const isOpen = !body.classList.contains("collapsed");
+  body.classList.toggle("collapsed", isOpen);
+  ch && ch.classList.toggle("open", !isOpen);
+}
+
+function scrollToResult() {
+  $("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ============================================================
+// ■ カスケード更新
+// ============================================================
+function updateValves() {
+  populateSelect($("valve"), Object.keys(valveData[$("procedure").value] || {}));
+  updateSizes();
+}
+function updateSizes() {
+  const proc  = $("procedure").value;
+  const valve = $("valve").value;
+  const src   = $("source").value;
+  populateSelect($("size"), Object.keys(valveData[proc]?.[valve]?.[src] || {}), s => s + " mm");
+  updateResult();
+}
+
+function updateResult() {
+  const s = getCurrentState();
+  const warns = s.usingDirect ? [] : validateInput(s.h, s.w);
+  $("warnings").innerHTML = warns.map(m => `<div class="warn-box">⚠ ${m}</div>`).join("");
+  $("bsaValue").textContent = s.bsa.toFixed(2);
+  $("bmiValue").textContent = (s.h > 0 && s.w > 0) ? s.bmi.toFixed(1) : "—";
+  $("bsaDirectNote").style.display = s.usingDirect ? "block" : "none";
+
+  if (s.eoa == null) {
+    $("resultBanner").innerHTML = "";
+    $("detailList").style.display = "none";
+    $("thresholdNote").textContent = "";
+    $("voiceSection").style.display = "none";
+    $("floatingBar").classList.remove("visible");
+    stopSpeech();
+    renderComparisonTable();
+    return;
+  }
+
+  // 判定バナー
+  $("resultBanner").innerHTML = `
+    <div class="result-banner ${s.pmm.color}">
+      ${s.pmm.label}
+      <div class="ieoa-sub">iEOA = ${s.ieoa.toFixed(2)} cm²/m²</div>
+    </div>`;
+
+  // 詳細リスト
+  $("detailList").style.display = "";
+  $("detailList").innerHTML = `
+    <div class="detail-row"><dt>術式</dt><dd>${s.proc}</dd></div>
+    <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
+    <div class="detail-row"><dt>サイズ</dt><dd>${s.size} mm</dd></div>
+    <div class="detail-row"><dt>EOA 参照元</dt><dd>${SOURCE_LABELS[s.src]}</dd></div>
+    <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²</dd></div>
+    <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
+    <div class="detail-row"><dt>iEOA</dt><dd>${s.ieoa.toFixed(2)} cm²/m²</dd></div>`;
+
+  // 判定基準ノート
+  $("thresholdNote").textContent =
+    `判定基準（${s.valve}）: iEOA ≥ ${s.th.moderate} → 低リスク / ` +
+    `${s.th.mod_label} → 中等度 / ` +
+    `iEOA ${s.th.sev_label} → 高度`;
+
+  // 音声コントロール表示
+  $("voiceSection").style.display = "";
+
+  // フローティングバー更新
+  const fb = $("floatingBar");
+  fb.classList.add("visible");
+  $("fbDot").className = `fb-dot ${s.pmm.color}`;
+  $("fbText").textContent = s.pmm.label;
+  $("fbIeoa").textContent = `iEOA ${s.ieoa.toFixed(2)}`;
+
+  if ($("showEoa").checked) renderEoaTable();
+  if ($("autoSpeak").checked) speakResult();
+  renderComparisonTable();
+}
+
+// ============================================================
+// ■ EOA テーブル
+// ============================================================
+function renderEoaTable() {
+  const proc = $("procedure").value;
+  const src  = $("source").value;
+  let rows = [];
+  for (const [name, sources] of Object.entries(valveData[proc] || {})) {
+    for (const [sz, eoa] of Object.entries(sources[src] || {})) {
+      rows.push({ name, size: parseInt(sz), eoa });
+    }
+  }
+  rows.sort((a, b) => a.name.localeCompare(b.name) || a.size - b.size);
+  let html = `<table class="eoa-table"><thead><tr>
+    <th>バルブ名</th><th>サイズ (mm)</th><th>EOA (cm²)</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r => {
+    html += `<tr><td style="text-align:left;">${r.name}</td><td>${r.size}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
+  });
+  html += "</tbody></table>";
+  $("eoaTableArea").innerHTML = html;
+}
+
+// ============================================================
+// ■ 比較表レンダリング
+// ============================================================
+function renderComparisonTable() {
+  const area = $("comparisonArea");
+  const s = getCurrentState();
+  if (!s.bsa || s.bsa <= 0 || !s.h || !s.w) {
+    area.innerHTML = '<div class="comp-no-bsa">身長・体重を入力すると全弁の判定が表示されます</div>';
+    return;
+  }
+
+  const src = $("compSource") ? $("compSource").value : "manufacturer";
+  const proc = $("procedure").value;
+  const valves = valveData[proc] || {};
+  const bsa = s.bsa;
+
+  const colorLabel = {
+    green:  ["No PPM",       "c-green"],
+    orange: ["Moderate PPM", "c-orange"],
+    red:    ["Severe PPM",   "c-red"],
+  };
+
+  let html = "";
+  for (const [valveName, sources] of Object.entries(valves)) {
+    const sizes = sources[src] || {};
+    if (Object.keys(sizes).length === 0) continue;
+
+    html += `<div class="comp-group"><div class="comp-group-title">${valveName}</div>`;
+    for (const [sz, eoa] of Object.entries(sizes)) {
+      const ieoa = eoa / bsa;
+      const pmm  = judgePMM(valveName, ieoa);
+      const [lbl, cls] = colorLabel[pmm.color];
+      const isCurrent = (s.valve === valveName && s.size === sz);
+      html += `
+        <div class="comp-row ${cls}${isCurrent ? " comp-current" : ""}">
+          <span class="comp-size">${sz} mm</span>
+          <span class="comp-eoa">EOA ${eoa.toFixed(2)} cm²</span>
+          <span class="comp-ieoa ${cls}">${ieoa.toFixed(2)}</span>
+          <span class="comp-badge ${cls}">${lbl}</span>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+  area.innerHTML = html || '<div class="comp-no-bsa">表示できるデータがありません</div>';
+}
+
+// ============================================================
+// ■ 音声読み上げ（Web Speech API）— 判定結果のみ読み上げ
+// ============================================================
+const TTS_SUPPORTED = "speechSynthesis" in window;
+
+function buildSpeechText(s) {
+  const ieoa = s.ieoa.toFixed(2);
+  if (s.pmm.color === "green")
+    return `判定結果：低リスクです。iEOA は ${ieoa} cm² per m² で、PPM の可能性は低いと判定されました。`;
+  if (s.pmm.color === "orange")
+    return `判定結果：中等度 PPM の可能性があります。iEOA は ${ieoa} cm² per m² です。サイズ選択を再確認してください。`;
+  return `判定結果：高度 PPM の可能性があります。iEOA が ${ieoa} cm² per m² と低値です。サイズアップまたは弁輪拡大術の検討が必要です。`;
+}
+
+function getJapaneseVoice() {
+  const voices = speechSynthesis.getVoices();
+  const ja = voices.filter(v => v.lang === "ja-JP" || v.lang.startsWith("ja"));
+  return ja.find(v => v.name.includes("Kyoko"))
+      || ja.find(v => v.localService)
+      || ja[0] || null;
+}
+
+function speakResult() {
+  if (!TTS_SUPPORTED) {
+    alert("このブラウザは音声合成に対応していません。\nChrome / Edge / Safari をお試しください。");
+    return;
+  }
+  const s = getCurrentState();
+  if (s.eoa == null) return;
+  stopSpeech();
+
+  const utter  = new SpeechSynthesisUtterance(buildSpeechText(s));
+  utter.lang   = "ja-JP";
+  utter.rate   = parseFloat($("voiceRate").value);
+  utter.pitch  = 1.0;
+  const voice  = getJapaneseVoice();
+  if (voice) utter.voice = voice;
+
+  utter.onstart = () => {
+    $("btnSpeak").style.display = "none";
+    $("btnStop").style.display  = "flex";
+    $("speakingIndicator").style.display = "block";
+  };
+  utter.onend = utter.onerror = () => {
+    $("btnSpeak").style.display = "flex";
+    $("btnStop").style.display  = "none";
+    $("speakingIndicator").style.display = "none";
+  };
+  speechSynthesis.speak(utter);
+}
+
+function stopSpeech() {
+  if (!TTS_SUPPORTED) return;
+  speechSynthesis.cancel();
+  if ($("btnSpeak")) {
+    $("btnSpeak").style.display = "flex";
+    $("btnStop").style.display  = "none";
+    $("speakingIndicator").style.display = "none";
+  }
+}
+if (TTS_SUPPORTED && speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = () => {};
+}
+
+// ============================================================
+// ■ OpenAI API 連携
+// ============================================================
+const OPENAI_API_URL    = "https://api.openai.com/v1/chat/completions";
+const OPENAI_MODEL      = "gpt-4o";
+const OPENAI_MAX_TOKENS = 1024;
+const OPENAI_TEMP       = 0.4;
+
+function buildPrompt(mode) {
+  const s = getCurrentState();
+  if (s.eoa == null) return null;
+
+  const ctx = [
+    `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m² / BMI: ${s.bmi.toFixed(1)}`,
+    `【術式】${s.proc}（大動脈弁置換術）`,
+    `【選択弁】${s.valve}  サイズ: ${s.size} mm`,
+    `【EOA】${s.eoa.toFixed(2)} cm²（${SOURCE_LABELS[s.src]}）`,
+    `【iEOA】${s.ieoa.toFixed(2)} cm²/m²`,
+    `【PPM判定】${s.pmm.label}`,
+    `【判定基準（${s.valve}）】iEOA ≥ ${s.th.moderate} → 低リスク / ${s.th.mod_label} → 中等度PPM / iEOA ${s.th.sev_label} → 高度PPM`,
+  ].join("\n");
+
+  const systemMsg = [
+    "あなたは心臓血管外科の弁膜症手術に精通した医療情報アシスタントです。",
+    "臨床医向けに簡潔かつ正確な情報を日本語で提供してください。",
+    "回答はマークダウンではなくプレーンテキストで書いてください。",
+    "箇条書きには「・」を使ってください。",
+    "最後に必ず「※ 本回答は AI による参考情報です。臨床判断は術者の責任で行ってください。」と付記してください。",
+  ].join("\n");
+
+  const questions = {
+    valve_info: [
+      "上記で選択されている人工弁について以下を簡潔に説明してください：",
+      "1. 弁の基本的な特徴（素材、設計思想、抗石灰化処理など）",
+      "2. 主な臨床的メリット・特長",
+      "3. 注意すべきポイントや制限事項",
+      "4. 他の同カテゴリ弁との簡単な位置づけ",
+    ],
+    pmm_advice: [
+      "上記の PPM 判定結果について以下の観点で補足・助言してください：",
+      "1. この iEOA 値の臨床的意味（血行動態への影響の程度）",
+      "2. PPM が懸念される場合の一般的な対処選択肢（サイズアップ、弁輪拡大術、TAVI など）",
+      "3. 経過観察において注目すべき指標やタイミング",
+      "4. ガイドライン上の参考情報（該当する場合）",
+    ],
+    comprehensive: [
+      "上記の全情報を踏まえ、以下を含む総合コメントを提供してください：",
+      "1. 選択弁の概要（1〜2文）",
+      "2. この患者体格に対するサイズ選択の妥当性評価",
+      "3. PPM リスクの臨床的解釈と推奨アクション",
+      "4. サイズ変更を検討する場合の選択肢",
+      "5. 術後フォローアップで留意すべき点",
+    ],
+  };
+  return { systemMsg, userMsg: [ctx, "", ...questions[mode]].join("\n") };
+}
+
+async function askAI(mode) {
+  const apiKey = $("apiKey").value.trim();
+  const area   = $("aiResponseArea");
+
+  if (!apiKey) {
+    area.innerHTML = `<div class="ai-error">OpenAI API Key を入力してください。</div>`;
+    return;
+  }
+  if (!apiKey.startsWith("sk-")) {
+    area.innerHTML = `<div class="ai-error">API Key の形式が正しくありません（sk- で始まる必要があります）。</div>`;
+    return;
+  }
+  const prompt = buildPrompt(mode);
+  if (!prompt) {
+    area.innerHTML = `<div class="ai-error">弁・サイズが正しく選択されていません。</div>`;
+    return;
+  }
+
+  const btns = document.querySelectorAll(".btn-ai");
+  btns.forEach(b => b.disabled = true);
+
+  const modeLabels = {
+    valve_info:    "🏭 バルブの説明",
+    pmm_advice:    "📊 PPM 補足・助言",
+    comprehensive: "📝 総合コメント",
+  };
+  area.innerHTML = `<div class="ai-loading"><span class="spinner"></span> ${modeLabels[mode]} を生成中...</div>`;
+
+  try {
+    const res = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [
+          { role: "system", content: prompt.systemMsg },
+          { role: "user",   content: prompt.userMsg }
+        ],
+        max_tokens: OPENAI_MAX_TOKENS,
+        temperature: OPENAI_TEMP,
+        stream: true
+      })
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      let msg = `API エラー (${res.status})`;
+      try { msg += `: ${JSON.parse(txt).error?.message || txt}`; } catch { msg += `: ${txt.slice(0,200)}`; }
+      area.innerHTML = `<div class="ai-error">${escapeHtml(msg)}</div>`;
+      return;
+    }
+
+    area.innerHTML = `<div class="ai-card"><div class="ai-label">🤖 ${modeLabels[mode]}</div><div id="aiText"></div></div>`;
+    const aiText  = $("aiText");
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "", full = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() || "";
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t || !t.startsWith("data: ")) continue;
+        const d = t.slice(6);
+        if (d === "[DONE]") break;
+        try {
+          const delta = JSON.parse(d).choices?.[0]?.delta?.content;
+          if (delta) { full += delta; aiText.textContent = full; }
+        } catch {}
+      }
+    }
+    if (!full.trim()) {
+      area.innerHTML = `<div class="ai-error">AI から応答が得られませんでした。</div>`;
+    }
+  } catch (err) {
+    area.innerHTML = `<div class="ai-error">通信エラー: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ============================================================
+// ■ API キーのセッション保存
+// ============================================================
+$("apiKey").addEventListener("input", function () {
+  try { sessionStorage.setItem("ppm_openai_key", this.value); } catch {}
+});
+(function () {
+  try { const s = sessionStorage.getItem("ppm_openai_key"); if (s) $("apiKey").value = s; } catch {}
+})();
+
+// ============================================================
+// ■ イベントリスナー
+// ============================================================
+$("height").addEventListener("input", updateResult);
+$("weight").addEventListener("input", updateResult);
+$("procedure").addEventListener("change", updateValves);
+$("source").addEventListener("change", updateSizes);
+$("valve").addEventListener("change", updateSizes);
+$("size").addEventListener("change", updateResult);
+$("showEoa").addEventListener("change", function () {
+  const area = $("eoaTableArea");
+  if (this.checked) { area.style.display = "block"; renderEoaTable(); }
+  else { area.style.display = "none"; }
+});
+
+// ============================================================
+// ■ PWA: Service Worker 登録
+// ============================================================
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+
+// ============================================================
+// ■ PWA: インストールプロンプト（Android / Chrome）
+// ============================================================
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $("installBanner").classList.add("show");
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    closeInstallBanner();
+  });
+}
+function closeInstallBanner() {
+  $("installBanner").classList.remove("show");
+}
+window.addEventListener("appinstalled", closeInstallBanner);
+
+// ============================================================
+// ■ オフライン検知
+// ============================================================
+function updateOnlineStatus() {
+  $("offlineBanner").classList.toggle("show", !navigator.onLine);
+}
+window.addEventListener("online",  updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+updateOnlineStatus();
+
+// ============================================================
+// ■ 初期化
+// ============================================================
+(function init() {
+  populateSelect($("procedure"), Object.keys(valveData));
+  updateValves();
+  window.addEventListener("beforeunload", stopSpeech);
+})();
+</script>
+</body>
+</html>
