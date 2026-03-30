@@ -3,7 +3,7 @@
  * オフライン時もキャッシュから動作できるようにする
  */
 
-const CACHE_NAME = "ppm-app-v1";
+const CACHE_NAME = "ppm-app-v2";
 
 // キャッシュ対象ファイル
 const CACHE_FILES = [
