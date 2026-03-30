@@ -1030,10 +1030,10 @@ const TTS_SUPPORTED = "speechSynthesis" in window;
 function buildSpeechText(s) {
   const ieoa = s.ieoa.toFixed(2);
   if (s.pmm.color === "green")
-    return `判定結果：低リスクです。iEOA は ${ieoa} cm² per m² で、PPM の可能性は低いと判定されました。`;
+    return `PPMの懸念は小さく、通常の弁選択で進めやすいと考えられます。`;
   if (s.pmm.color === "orange")
-    return `判定結果：中等度 PPM の可能性があります。iEOA は ${ieoa} cm² per m² です。サイズ選択を再確認してください。`;
-  return `判定結果：高度 PPM の可能性があります。iEOA が ${ieoa} cm² per m² と低値です。サイズアップまたは弁輪拡大術の検討が必要です。`;
+    return `境界域の可能性があり、弁種選択やサイズ戦略の再確認が有用です。`;
+  return `PPM回避のため、弁輪拡大やスープラアニュラーデザインを含めた再検討が望まれます。`;
 }
 
 function getJapaneseVoice() {
