@@ -731,35 +731,35 @@ const valveData = {
   "AVR": {
     "On-X (CryoLife)": {
       "manufacturer": { "19": 1.70, "21": 2.30, "23": 2.90, "25": 3.60 },
-      "literature":   { "19": 1.65, "21": 2.23, "23": 2.82, "25": 3.50 }
+      "literature":   { "19": 1.50, "21": 1.70, "23": 2.00, "25": 2.40 }
     },
     "Avalus (アバラス)": {
       "manufacturer": { "19": 1.40, "21": 1.57, "23": 1.97, "25": 2.12, "27": 2.50 },
-      "literature":   { "19": 1.36, "21": 1.52, "23": 1.91, "25": 2.06, "27": 2.43 }
+      "literature":   { "19": 1.10, "21": 1.30, "23": 1.50, "25": 1.70, "27": 1.90 }
     },
     "Epic Supra (エピック スープラ)": {
       "manufacturer": { "19": 1.48, "21": 1.56, "23": 1.72 },
-      "literature":   { "19": 1.44, "21": 1.51, "23": 1.67 }
+      "literature":   { "19": 1.00, "21": 1.30, "23": 1.50 }
     },
     "Epic Standard (エピック スタンダード)": {
       "manufacturer": { "23": 1.40, "25": 1.50, "27": 1.60 },
-      "literature":   { "23": 1.36, "25": 1.46, "27": 1.55 }
+      "literature":   { "23": 1.20, "25": 1.40, "27": 1.50 }
     },
     "PERIMOUNT Magna (マグナ)": {
       "manufacturer": { "19": 1.58, "21": 1.90, "23": 2.07, "25": 2.33 },
-      "literature":   { "19": 1.53, "21": 1.84, "23": 2.01, "25": 2.26 }
+      "literature":   { "19": 1.30, "21": 1.50, "23": 1.80, "25": 2.10 }
     },
     "INSPIRIS RESILIA (インスピリス)": {
       "manufacturer": { "19": 1.58, "21": 1.90, "23": 2.07, "25": 2.33 },
-      "literature":   { "19": 1.53, "21": 1.84, "23": 2.01, "25": 2.26 }
+      "literature":   { "19": 1.30, "21": 1.50, "23": 1.80, "25": 2.10 }
     },
     "Mosaic (モザイク)": {
       "manufacturer": { "19": 1.20, "21": 1.30, "23": 1.50, "25": 1.80, "27": 2.00, "29": 2.10 },
-      "literature":   { "19": 1.16, "21": 1.26, "23": 1.46, "25": 1.75, "27": 1.94, "29": 2.04 }
+      "literature":   { "19": 1.20, "21": 1.20, "23": 1.40, "25": 1.80, "27": 2.00, "29": 2.10 }
     },
     "SJM Regent (リージェント)": {
       "manufacturer": { "17": 1.30, "19": 1.70, "21": 2.00, "23": 2.50, "25": 2.60, "27": 3.50, "29": 3.50 },
-      "literature":   { "17": 1.26, "19": 1.65, "21": 1.94, "23": 2.43, "25": 2.52, "27": 3.40, "29": 3.40 }
+      "literature":   { "17": 1.00, "19": 1.60, "21": 2.00, "23": 2.20, "25": 2.50, "27": 3.60, "29": 3.60 }
     }
   }
 };
@@ -802,7 +802,12 @@ const calculateBSA = (h, w) => Math.sqrt(h * w / 3600);
 const calculateBMI = (h, w) => w / Math.pow(h / 100, 2);
 const getIEOA      = (eoa, bsa) => bsa > 0 ? eoa / bsa : 0;
 
-function judgePMM(valveName, ieoa) {
+function judgePMM(valveName, ieoa, source) {
+  if (source === "literature") {
+    if (ieoa > 0.85)  return { label: "No PPM（低リスク）", color: "green" };
+    if (ieoa >= 0.66) return { label: "Moderate PPM の可能性", color: "orange" };
+    return { label: "Severe PPM の可能性", color: "red" };
+  }
   const th = THRESHOLDS[valveName] || { severe: 0.65, severe_incl: false, moderate: 0.85 };
   if (ieoa >= th.moderate) return { label: "低リスク（PPMの可能性は低い）", color: "green" };
   const isRed = th.severe_incl ? ieoa <= th.severe : ieoa < th.severe;
@@ -836,8 +841,10 @@ function getCurrentState() {
   const bmi  = calculateBMI(h, w);
   const eoa  = valveData[proc]?.[valve]?.[src]?.[size];
   const ieoa = eoa != null ? getIEOA(eoa, bsa) : null;
-  const pmm  = ieoa != null ? judgePMM(valve, ieoa) : null;
-  const th   = THRESHOLDS[valve] || { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65" };
+  const pmm  = ieoa != null ? judgePMM(valve, ieoa, src) : null;
+  const th   = src === "literature"
+    ? { severe: 0.65, severe_incl: true, moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65" }
+    : THRESHOLDS[valve] || { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65" };
   return { h, w, bsa, bmi, proc, src, valve, size, eoa, ieoa, pmm, th, usingDirect };
 }
 
