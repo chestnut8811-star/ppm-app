@@ -705,7 +705,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <li>本アプリは簡易評価用です。スクリーニング目的でのみご使用ください。</li>
       <li>実際の臨床判断はガイドライン、文献、術前画像評価、術中判断を含めて総合的に行ってください。</li>
       <li>EOA 値は参照元により差がありうるため、施設採用値に差し替えて運用してください。</li>
-      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。</li>
+      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（≤ 0.65）。</li>
       <li>AI アシスタントの回答は参考情報であり、臨床的意思決定の根拠にはなりません。</li>
     </ul>
   </div>
@@ -760,6 +760,10 @@ const valveData = {
     "SJM Regent (リージェント)": {
       "manufacturer": { "17": 1.30, "19": 1.70, "21": 2.00, "23": 2.50, "25": 2.60, "27": 3.50, "29": 3.50 },
       "literature":   { "17": 1.00, "19": 1.60, "21": 2.00, "23": 2.20, "25": 2.50, "27": 3.60, "29": 3.60 }
+    },
+    "SAPIEN 3 Ultra RESILIA (TAVI)": {
+      "manufacturer": { "20": 1.54, "23": 1.73, "26": 2.04, "29": 2.38 },
+      "literature":   { "20": 1.54, "23": 1.73, "26": 2.04, "29": 2.38 }
     }
   }
 };
@@ -788,7 +792,9 @@ const THRESHOLDS = {
   "Mosaic (モザイク)":
     { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
   "SJM Regent (リージェント)":
-    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  }
+    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
+  "SAPIEN 3 Ultra RESILIA (TAVI)":
+    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65"  }
 };
 
 const HEIGHT_MIN = 100, HEIGHT_MAX = 220;
