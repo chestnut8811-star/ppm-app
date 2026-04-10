@@ -971,7 +971,7 @@ function updateResult() {
     <div class="detail-row"><dt>術式</dt><dd>${s.proc}</dd></div>
     <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
     <div class="detail-row"><dt>サイズ</dt><dd>${isNaN(s.size) ? s.size : s.size + " mm"}</dd></div>
-    <div class="detail-row"><dt>EOA 参照元</dt><dd>${SOURCE_LABELS[s.src]}</dd></div>
+    <div class="detail-row"><dt>EOA 参照元</dt><dd>${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}</dd></div>
     <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²</dd></div>
     <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
     <div class="detail-row"><dt>iEOA</dt><dd>${s.ieoa.toFixed(2)} cm²/m²</dd></div>`;
@@ -1147,7 +1147,7 @@ function buildPrompt(mode) {
     `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m² / BMI: ${s.bmi.toFixed(1)}`,
     `【術式】${s.proc}（大動脈弁置換術）`,
     `【選択弁】${s.valve}  サイズ: ${isNaN(s.size) ? s.size : s.size + " mm"}`,
-    `【EOA】${s.eoa.toFixed(2)} cm²（${SOURCE_LABELS[s.src]}）`,
+    `【EOA】${s.eoa.toFixed(2)} cm²（${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}）`,
     `【iEOA】${s.ieoa.toFixed(2)} cm²/m²`,
     `【PPM判定】${s.pmm.label}`,
     `【判定基準（${s.valve}）】iEOA ≥ ${s.th.moderate} → 低リスク / ${s.th.mod_label} → 中等度PPM / iEOA ${s.th.sev_label} → 高度PPM`,
