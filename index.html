@@ -242,6 +242,20 @@ input:focus, select:focus {
   margin-bottom: 10px;
 }
 
+.perceval-notice {
+  background: #fff3e0;
+  border: 1px solid #ff9800;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  color: #4e342e;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.perceval-notice strong { color: #e65100; }
+.perceval-notice ul { margin: 6px 0 0 16px; padding: 0; }
+.perceval-notice li { margin-bottom: 3px; }
+
 /* ============================================================
    判定バナー
    ============================================================ */
@@ -606,6 +620,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <span class="card-title">判定結果</span>
     </div>
     <div class="card-body">
+      <div id="percevalNotice" style="display:none;"></div>
       <div id="resultBanner"></div>
       <dl class="detail-list" id="detailList" style="display:none;"></dl>
       <div id="thresholdNote" class="threshold-note"></div>
@@ -915,6 +930,23 @@ function updateResult() {
   $("bmiValue").textContent = (s.h > 0 && s.w > 0) ? s.bmi.toFixed(1) : "—";
   $("bsaDirectNote").style.display = s.usingDirect ? "block" : "none";
 
+  // Perceval 注意バナー
+  const isPerceval = s.valve && s.valve.includes("Perceval");
+  const pn = $("percevalNotice");
+  if (isPerceval) {
+    pn.style.display = "block";
+    pn.innerHTML = `<div class="perceval-notice">
+      <strong>⚠ Perceval（スーチャレス）EOA に関する注意</strong>
+      <ul>
+        <li>本弁の EOA は<strong>臨床推定値</strong>です（Pivotal trial 等の集計データからの按分）。</li>
+        <li>サイズ別の臨床 Doppler EOA は文献上<strong>未公表</strong>のため、他の弁より精度が劣ります。</li>
+        <li>PPM リスクの<strong>傾向把握・参考スクリーニング</strong>としてご使用ください。</li>
+      </ul></div>`;
+  } else {
+    pn.style.display = "none";
+    pn.innerHTML = "";
+  }
+
   if (s.eoa == null) {
     $("resultBanner").innerHTML = "";
     $("detailList").style.display = "none";
@@ -974,15 +1006,16 @@ function renderEoaTable() {
   let rows = [];
   for (const [name, sources] of Object.entries(valveData[proc] || {})) {
     for (const [sz, eoa] of Object.entries(sources[src] || {})) {
-      rows.push({ name, size: parseInt(sz), eoa });
+      rows.push({ name, size: sz, eoa });
     }
   }
-  rows.sort((a, b) => a.name.localeCompare(b.name) || a.size - b.size);
+  rows.sort((a, b) => a.name.localeCompare(b.name) || String(a.size).localeCompare(String(b.size), undefined, {numeric: true}));
   let html = `<table class="eoa-table"><thead><tr>
-    <th>バルブ名</th><th>サイズ (mm)</th><th>EOA (cm²)</th>
+    <th>バルブ名</th><th>サイズ</th><th>EOA (cm²)</th>
   </tr></thead><tbody>`;
   rows.forEach(r => {
-    html += `<tr><td style="text-align:left;">${r.name}</td><td>${r.size}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
+    const szLabel = isNaN(r.size) ? r.size : r.size + " mm";
+    html += `<tr><td style="text-align:left;">${r.name}</td><td>${szLabel}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
   });
   html += "</tbody></table>";
   $("eoaTableArea").innerHTML = html;
