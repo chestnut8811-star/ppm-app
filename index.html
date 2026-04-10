@@ -525,7 +525,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
 <!-- ヘッダー -->
 <div class="app-header">
   <h1>🫀 PPM判定アプリ</h1>
-  <div class="subtitle">AVR（大動脈弁置換術）生体弁・機械弁サイズ選択時の Prosthesis-Patient Mismatch 簡易評価</div>
+  <div class="subtitle">AVR（大動脈弁置換術）生体弁・機械弁・スーチャレスバルブ サイズ選択時の Prosthesis-Patient Mismatch 簡易評価</div>
 </div>
 
 <div class="scroll-body">
@@ -705,7 +705,8 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <li>本アプリは簡易評価用です。スクリーニング目的でのみご使用ください。</li>
       <li>実際の臨床判断はガイドライン、文献、術前画像評価、術中判断を含めて総合的に行ってください。</li>
       <li>EOA 値は参照元により差がありうるため、施設採用値に差し替えて運用してください。</li>
-      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（≤ 0.65）。</li>
+      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（≤ 0.65）。Perceval（スーチャレス）は ASE 2024 統一基準（≤ 0.65）を適用。</li>
+      <li>Perceval の EOA は臨床推定値です（Pivotal trial 集計値からの按分）。サイズ別の臨床 Doppler EOA が公表された場合は差し替えを推奨します。</li>
       <li>AI アシスタントの回答は参考情報であり、臨床的意思決定の根拠にはなりません。</li>
     </ul>
   </div>
@@ -764,6 +765,9 @@ const valveData = {
     "SAPIEN 3 Ultra RESILIA (TAVI)": {
       "manufacturer": { "20": 1.54, "23": 1.73, "26": 2.04, "29": 2.38 },
       "literature":   { "20": 1.54, "23": 1.73, "26": 2.04, "29": 2.38 }
+    },
+    "Perceval (パーシバル)": {
+      "manufacturer": { "S": 1.37, "M": 1.63, "L": 1.84, "XL": 2.09 }
     }
   }
 };
@@ -794,7 +798,9 @@ const THRESHOLDS = {
   "SJM Regent (リージェント)":
     { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
   "SAPIEN 3 Ultra RESILIA (TAVI)":
-    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65"  }
+    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65"  },
+  "Perceval (パーシバル)":
+    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.84", sev_label: "≤ 0.65"  }
 };
 
 const HEIGHT_MIN = 100, HEIGHT_MAX = 220;
@@ -897,7 +903,7 @@ function updateSizes() {
   const proc  = $("procedure").value;
   const valve = $("valve").value;
   const src   = $("source").value;
-  populateSelect($("size"), Object.keys(valveData[proc]?.[valve]?.[src] || {}), s => s + " mm");
+  populateSelect($("size"), Object.keys(valveData[proc]?.[valve]?.[src] || {}), s => isNaN(s) ? s : s + " mm");
   updateResult();
 }
 
@@ -932,7 +938,7 @@ function updateResult() {
   $("detailList").innerHTML = `
     <div class="detail-row"><dt>術式</dt><dd>${s.proc}</dd></div>
     <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
-    <div class="detail-row"><dt>サイズ</dt><dd>${s.size} mm</dd></div>
+    <div class="detail-row"><dt>サイズ</dt><dd>${isNaN(s.size) ? s.size : s.size + " mm"}</dd></div>
     <div class="detail-row"><dt>EOA 参照元</dt><dd>${SOURCE_LABELS[s.src]}</dd></div>
     <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²</dd></div>
     <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
@@ -1107,7 +1113,7 @@ function buildPrompt(mode) {
   const ctx = [
     `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m² / BMI: ${s.bmi.toFixed(1)}`,
     `【術式】${s.proc}（大動脈弁置換術）`,
-    `【選択弁】${s.valve}  サイズ: ${s.size} mm`,
+    `【選択弁】${s.valve}  サイズ: ${isNaN(s.size) ? s.size : s.size + " mm"}`,
     `【EOA】${s.eoa.toFixed(2)} cm²（${SOURCE_LABELS[s.src]}）`,
     `【iEOA】${s.ieoa.toFixed(2)} cm²/m²`,
     `【PPM判定】${s.pmm.label}`,
