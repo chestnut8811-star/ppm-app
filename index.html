@@ -253,6 +253,19 @@ input:focus, select:focus {
   line-height: 1.6;
 }
 .perceval-notice strong { color: #e65100; }
+
+.bmi-notice {
+  background: #fff3e0;
+  border: 1px solid #ff9800;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #4e342e;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.bmi-notice strong { color: #bf360c; }
+.bmi-notice .bn-title { display: block; font-weight: 800; color: #bf360c; margin-bottom: 2px; }
 .perceval-notice ul { margin: 6px 0 0 16px; padding: 0; }
 .perceval-notice li { margin-bottom: 3px; }
 
@@ -295,6 +308,97 @@ input:focus, select:focus {
 .threshold-note { font-size: 0.7rem; color: var(--c-muted); text-align: center; line-height: 1.55; padding: 0 4px; }
 
 /* ============================================================
+   リスク位置（バナーの位置表示・iEOA ゲージ・メーカー表での位置）
+   ============================================================ */
+.result-banner .pos-sub {
+  display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: baseline;
+  gap: 2px 8px; margin-top: 9px; padding: 4px 12px; border-radius: 999px;
+  background: rgba(0,0,0,0.36); font-size: 0.88rem; font-weight: 800;
+}
+.result-banner .pos-sub span { font-size: 0.74rem; font-weight: 700; }
+
+.rp-section { margin: 2px 0 16px; }
+.rp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.rp-title { font-size: 0.8rem; font-weight: 800; color: var(--c-text); }
+.rp-sub { font-size: 0.68rem; color: var(--c-muted); line-height: 1.5; margin-bottom: 6px; }
+.rp-sub b { color: var(--c-primary); }
+.rp-toggle {
+  flex-shrink: 0; border: 1px solid var(--c-border); background: #fff; color: var(--c-primary);
+  font-size: 0.7rem; font-weight: 700; border-radius: 999px; padding: 5px 11px; cursor: pointer; white-space: nowrap;
+}
+.rp-note {
+  margin-top: 4px; font-size: 0.78rem; line-height: 1.6; color: var(--c-text);
+  background: var(--c-bg); border-radius: 10px; padding: 8px 11px;
+}
+.rp-legend { font-size: 0.66rem; color: var(--c-muted); line-height: 1.6; margin-top: 6px; }
+
+/* iEOA ゲージ */
+.gauge { position: relative; margin: 0 4px; }
+.g-top { position: relative; height: 22px; }
+.g-lbl {
+  position: absolute; bottom: 8px; transform: translateX(-50%);
+  font-size: 0.68rem; font-weight: 700; color: #48484a; white-space: nowrap;
+}
+.g-lbl.left  { transform: translateX(-4px); }
+.g-lbl.right { transform: translateX(4px); }
+.g-tick { position: absolute; bottom: 0; width: 2px; height: 7px; margin-left: -1px; background: #48484a; border-radius: 1px; }
+.g-bar { position: relative; height: 30px; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10); }
+.g-bound { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #1c1c1e; }
+.g-bound span {
+  position: absolute; font-size: 0.64rem; font-weight: 800; font-style: normal;
+  color: #1c1c1e; white-space: nowrap; line-height: 1;
+}
+.g-bound span.r { left: 4px; }
+.g-bound span.l { right: 4px; }
+.g-bound span.t { top: 3px; }
+.g-bound span.b { bottom: 3px; }
+.g-needle {
+  position: absolute; top: -7px; bottom: -7px; width: 4px; margin-left: -2px;
+  background: var(--c-primary); border-radius: 2px; box-shadow: 0 0 0 1.5px #fff;
+}
+.g-bottom { position: relative; height: 36px; }
+.g-pin-arrow {
+  position: absolute; top: 7px; width: 0; height: 0; margin-left: -6px;
+  border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 7px solid var(--c-primary);
+}
+.g-pin {
+  position: absolute; top: 13px; transform: translateX(-50%);
+  background: var(--c-primary); color: #fff; font-size: 0.76rem; font-weight: 800;
+  padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+}
+.g-axis { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--c-muted); margin-top: 1px; }
+
+/* メーカー表（Excel）での位置 */
+.rp-table-wrap { margin: 0 -10px; overflow-x: auto; }
+table.rp-table {
+  width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed;
+  font-size: 0.74rem; font-variant-numeric: tabular-nums;
+}
+.rp-table th, .rp-table td { text-align: center; padding: 0 1px; height: 23px; line-height: 1.1; }
+.rp-table thead th { background: #e9ecf2; color: #3a3a3c; font-weight: 800; }
+.rp-table thead tr.eoa th { font-size: 0.62rem; font-weight: 600; color: #636366; height: 18px; }
+.rp-table thead th.sel, .rp-table thead tr.eoa th.sel { background: var(--c-primary); color: #fff; }
+.rp-table th.rowh { width: 17%; background: #f2f4f8; color: #3a3a3c; font-weight: 700; font-size: 0.68rem; }
+.rp-table tr.pt th, .rp-table tr.pt td {
+  height: 30px; border-top: 2px solid var(--c-primary); border-bottom: 2px solid var(--c-primary);
+}
+.rp-table tr.pt th.rowh { background: var(--c-primary); color: #fff; font-size: 0.6rem; line-height: 1.15; }
+.rp-table tr.pt td { font-weight: 800; font-size: 0.8rem; }
+.rp-table td.selc { outline: 2.5px solid var(--c-primary); outline-offset: -3.5px; }
+/* 赤（高度PPM）の区分には斜線を重ねる（赤緑の色覚特性でも緑と見分けられるように） */
+.rp-table td.hatch, .g-hatch {
+  background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.45) 0 1.5px, transparent 1.5px 6px);
+}
+.g-hatch { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px 0 0 7px; pointer-events: none; }
+/* 列が多い弁（Mosaic・Regent）は狭い画面で数字が枠にかからないよう一段小さく */
+.rp-table.dense { font-size: 0.7rem; }
+.rp-table.dense tr.pt td { font-size: 0.72rem; }
+.rp-table tfoot th, .rp-table tfoot td { background: #f7f8fb; font-size: 0.66rem; color: #3a3a3c; height: 22px; }
+.rp-table tfoot tr:first-child th, .rp-table tfoot tr:first-child td { border-top: 1.5px solid #c7c7cc; }
+.rp-table tfoot td.self { color: var(--c-primary); font-weight: 800; }
+.rp-gap td { height: 18px; font-size: 0.62rem; color: var(--c-muted); background: #fafafa; }
+
+/* ============================================================
    音声コントロール
    ============================================================ */
 .voice-section {
@@ -303,6 +407,7 @@ input:focus, select:focus {
   padding-top: 12px;
 }
 .voice-title { font-size: 0.72rem; font-weight: 700; color: var(--c-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+.voice-src { font-size: 0.68rem; color: var(--c-muted); margin: -4px 0 8px; }
 .voice-row { display: flex; gap: 8px; align-items: center; }
 .btn-speak {
   flex: 1; min-height: 46px;
@@ -621,13 +726,16 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
     </div>
     <div class="card-body">
       <div id="percevalNotice" style="display:none;"></div>
+      <div id="bmiNotice" style="display:none;"></div>
       <div id="resultBanner"></div>
+      <div id="riskPos" style="display:none;"></div>
       <dl class="detail-list" id="detailList" style="display:none;"></dl>
       <div id="thresholdNote" class="threshold-note"></div>
 
       <!-- 音声コントロール -->
       <div class="voice-section" id="voiceSection" style="display:none;">
         <div class="voice-title">🔊 音声読み上げ</div>
+        <div class="voice-src" id="voiceSrc">音声：読み込み中…</div>
         <div class="voice-row">
           <button class="btn-speak" id="btnSpeak" onclick="speakResult()">🔊 読み上げ</button>
           <button class="btn-stop"  id="btnStop"  onclick="stopSpeech()" style="display:none;">⏹ 停止</button>
@@ -720,7 +828,10 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <li>本アプリは簡易評価用です。スクリーニング目的でのみご使用ください。</li>
       <li>実際の臨床判断はガイドライン、文献、術前画像評価、術中判断を含めて総合的に行ってください。</li>
       <li>EOA 値は参照元により差がありうるため、施設採用値に差し替えて運用してください。</li>
-      <li>PPM 判定閾値はメーカーによって異なります（Magna/INSPIRIS は重症下限 ≤ 0.75、Epic/Mosaic/Regent は &lt; 0.80、On-X/Avalus は &lt; 0.65）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（≤ 0.65）。Perceval（スーチャレス）は ASE 2024 統一基準（≤ 0.65）を適用。</li>
+      <li>PPM 判定閾値はメーカーによって異なります（高度PPM：Magna/INSPIRIS/Mosaic は ≤ 0.75、Epic/Regent は &lt; 0.80、On-X は &lt; 0.65、Avalus は ≤ 0.65。低リスク：Avalus・Magna/INSPIRIS は &gt; 0.85、On-X・Regent は ≥ 0.85）。Mosaic・Epic は原本の写真に凡例がなく、0.85 ちょうどの扱いは要確認（≥ 0.85 として判定）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（&gt; 0.85 / ≤ 0.65）。Perceval（スーチャレス）は ASE 2024 統一基準（≤ 0.65）を適用。各メーカー表と同じく、iEOA を小数第2位に四捨五入した値で判定します。</li>
+      <li>BSA は Mosteller 式（√(身長cm × 体重kg ÷ 3600)）で計算し、小数第2位に丸めた値で判定します。</li>
+      <li>判定区分は BMI 30 未満の基準です。BMI 30 以上の患者には別の基準が推奨されているため（VARC 3：中等度 iEOA ≤ 0.70、高度 ≤ 0.55。アバラスの EOAi チャートにも記載）、BMI 30 以上では結果欄に注意を表示します。</li>
+      <li>判定結果の色の濃淡、「黄に近い緑」などの表示、サイズ別の BSA 上限は、判定区分の境界からの距離を示す目安です（臨床的な追加区分ではありません）。メーカー公称 EOA は平均値のため、境界付近の区分は特に幅をもって解釈してください。</li>
       <li>Perceval の EOA は臨床推定値です（Pivotal trial 集計値からの按分）。サイズ別の臨床 Doppler EOA が公表された場合は差し替えを推奨します。</li>
       <li>AI アシスタントの回答は参考情報であり、臨床的意思決定の根拠にはなりません。</li>
     </ul>
@@ -737,6 +848,9 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
 </div>
 
 <script>
+// ==== PPM-CORE-BEGIN ====
+// ここから PPM-CORE-END までは DOM に触れない純粋ロジック。
+// 親フォルダの eval/test_app_logic.mjs が切り出して、Excel 表・メーカー原本と 1 セルずつ照合する。
 // ============================================================
 // ■ EOA データ（PDF凡例確認済み最終版 — AVR のみ）
 // ============================================================
@@ -788,35 +902,44 @@ const valveData = {
 };
 
 // ============================================================
-// ■ 判定閾値（PDF凡例確認済み — バルブ別）
+// ■ メーカー表（Excel の弁別 iEOA 計算表）の BSA 範囲 [最小, 最大]（0.1 m² 刻み）
 // ============================================================
-// severe      : 高度PPMの境界値
-// severe_incl : true  → iEOA ≤ severe で高度PPM（境界値自体が赤）
-//               false → iEOA < severe で高度PPM（境界値自体は黄）
-// moderate    : iEOA ≥ moderate で低リスク（緑）
+const CHART_BSA = {
+  "On-X (CryoLife)":                     [0.6, 2.7],
+  "Avalus (アバラス)":                     [1.0, 2.5],
+  "Epic Supra (エピック スープラ)":         [0.6, 2.5],
+  "Epic Standard (エピック スタンダード)":   [0.6, 2.5],
+  "PERIMOUNT Magna (マグナ)":              [1.0, 2.5],
+  "INSPIRIS RESILIA (インスピリス)":         [1.0, 2.5],
+  "Mosaic (モザイク)":                     [1.0, 2.7],
+  "SJM Regent (リージェント)":              [0.6, 2.5],
+  "SAPIEN 3 Ultra RESILIA (TAVI)":        [1.0, 2.1],
+  "Perceval (パーシバル)":                  [1.0, 2.5]
+};
+
+// ============================================================
+// ■ 判定閾値（メーカー表の凡例・色分けを原本 PDF で確認 — バルブ別）
+// ============================================================
+// green  / green_incl : true → iEOA ≥ green で緑（低リスク）  false → iEOA > green で緑
+// severe / severe_incl: true → iEOA ≤ severe で赤（高度PPM）  false → iEOA < severe で赤
+// 判定はメーカー表と同じく「小数第2位に四捨五入した iEOA」で行う。
+//   例）アバラス 21mm・BSA 2.4 → 1.57 / 2.4 = 0.654 → 表示 0.65 → 原本の色は赤
 // ============================================================
 const THRESHOLDS = {
-  "On-X (CryoLife)":
-    { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65"  },
-  "Avalus (アバラス)":
-    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.84", sev_label: "≤ 0.65"  },
-  "Epic Supra (エピック スープラ)":
-    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
-  "Epic Standard (エピック スタンダード)":
-    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
-  "PERIMOUNT Magna (マグナ)":
-    { severe: 0.75, severe_incl: true,  moderate: 0.85, mod_label: "0.76〜0.84", sev_label: "≤ 0.75"  },
-  "INSPIRIS RESILIA (インスピリス)":
-    { severe: 0.75, severe_incl: true,  moderate: 0.85, mod_label: "0.76〜0.84", sev_label: "≤ 0.75"  },
-  "Mosaic (モザイク)":
-    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
-  "SJM Regent (リージェント)":
-    { severe: 0.80, severe_incl: false, moderate: 0.85, mod_label: "0.80〜0.84", sev_label: "< 0.80"  },
-  "SAPIEN 3 Ultra RESILIA (TAVI)":
-    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65"  },
-  "Perceval (パーシバル)":
-    { severe: 0.65, severe_incl: true,  moderate: 0.85, mod_label: "0.66〜0.84", sev_label: "≤ 0.65"  }
+  "On-X (CryoLife)":                     { green: 0.85, green_incl: true,  severe: 0.65, severe_incl: false }, // On-X.pdf 凡例
+  "Avalus (アバラス)":                     { green: 0.85, green_incl: false, severe: 0.65, severe_incl: true  }, // アバラス①.pdf 凡例（>0.85 / ≤0.85 / ≤0.65）
+  "Epic Supra (エピック スープラ)":         { green: 0.85, green_incl: true,  severe: 0.80, severe_incl: false }, // エピック.pdf の色分け（凡例は写っていない。0.85 ちょうどの扱いは要確認）
+  "Epic Standard (エピック スタンダード)":   { green: 0.85, green_incl: true,  severe: 0.80, severe_incl: false }, // 同上
+  "PERIMOUNT Magna (マグナ)":              { green: 0.85, green_incl: false, severe: 0.75, severe_incl: true  }, // マグナ・インスピリス.pdf 凡例（>0.85 / >0.75 / ≤0.75）
+  "INSPIRIS RESILIA (インスピリス)":         { green: 0.85, green_incl: false, severe: 0.75, severe_incl: true  }, // 同上
+  "Mosaic (モザイク)":                     { green: 0.85, green_incl: true,  severe: 0.75, severe_incl: true  }, // モザイク.pdf の色分け（0.75 は赤、0.76 は黄。凡例なし・0.85 ちょうどの扱いは要確認）
+  "SJM Regent (リージェント)":              { green: 0.85, green_incl: true,  severe: 0.80, severe_incl: false }, // リージェント.pdf 凡例
+  "SAPIEN 3 Ultra RESILIA (TAVI)":        { green: 0.85, green_incl: false, severe: 0.65, severe_incl: true  }, // 資料の凡例（VARC III）
+  "Perceval (パーシバル)":                  { green: 0.85, green_incl: true,  severe: 0.65, severe_incl: true  }  // メーカー表なし。Excel の凡例（ASE 2024）
 };
+// 文献採用値は ASE 2024 統一基準（BMI < 30）: > 0.85 No PPM / 0.66〜0.85 Moderate / ≤ 0.65 Severe
+const LIT_THRESHOLD     = { green: 0.85, green_incl: false, severe: 0.65, severe_incl: true  };
+const DEFAULT_THRESHOLD = { green: 0.85, green_incl: true,  severe: 0.65, severe_incl: false };
 
 const HEIGHT_MIN = 100, HEIGHT_MAX = 220;
 const WEIGHT_MIN = 20,  WEIGHT_MAX = 200;
@@ -829,18 +952,174 @@ const calculateBSA = (h, w) => Math.sqrt(h * w / 3600);
 const calculateBMI = (h, w) => w / Math.pow(h / 100, 2);
 const getIEOA      = (eoa, bsa) => bsa > 0 ? eoa / bsa : 0;
 
+// iEOA を 0.01 単位の整数にする（四捨五入）。1.4/1.6 = 0.87499… が 0.87 にならないよう微小値を足す
+const toH    = (x) => Math.round(x * 100 + 1e-7);
+const round2 = (x) => toH(x) / 100;
+const fmt2   = (x) => round2(x).toFixed(2);
+
+// 弁・参照元ごとの閾値と、小数2桁で見た各区分の端（gMin=緑の最小値、rMax=赤の最大値）
+function getThreshold(valveName, source) {
+  const t = source === "literature" ? LIT_THRESHOLD : (THRESHOLDS[valveName] || DEFAULT_THRESHOLD);
+  const gMinH = toH(t.green)  + (t.green_incl  ? 0 : 1);
+  const rMaxH = toH(t.severe) - (t.severe_incl ? 0 : 1);
+  return {
+    ...t, gMinH, rMaxH,
+    gMin: gMinH / 100, rMax: rMaxH / 100, yMin: (rMaxH + 1) / 100, yMax: (gMinH - 1) / 100,
+    basis:       source === "literature" ? "ASE 2024・文献採用値" : valveName,
+    green_label: (t.green_incl ? "≥ " : "> ") + t.green.toFixed(2),
+    mod_label:   `${((rMaxH + 1) / 100).toFixed(2)}〜${((gMinH - 1) / 100).toFixed(2)}`,
+    sev_label:   (t.severe_incl ? "≤ " : "< ") + t.severe.toFixed(2)
+  };
+}
+
 function judgePMM(valveName, ieoa, source) {
-  if (source === "literature") {
-    if (ieoa > 0.85)  return { label: "No PPM（低リスク）", color: "green" };
-    if (ieoa >= 0.66) return { label: "Moderate PPM の可能性", color: "orange" };
-    return { label: "Severe PPM の可能性", color: "red" };
+  const th  = getThreshold(valveName, source);
+  const h   = toH(ieoa);
+  const lit = source === "literature";
+  if (h >= th.gMinH) return lit ? { label: "No PPM（低リスク）",    color: "green"  } : { label: "低リスク（PPMの可能性は低い）", color: "green" };
+  if (h >  th.rMaxH) return lit ? { label: "Moderate PPM の可能性", color: "orange" } : { label: "中等度PPMの可能性", color: "orange" };
+  return                   lit ? { label: "Severe PPM の可能性",   color: "red"    } : { label: "高度PPMの可能性",   color: "red" };
+}
+
+// ============================================================
+// ■ 区分の中での位置（色の濃淡・「黄に近い緑」などの表示に使う）
+// ============================================================
+// 濃淡の幅は表示上の設定で、臨床的な区分ではない。
+const GREEN_SPAN = 0.30;  // 緑: 緑の最小値から +0.30 以上で最も濃い緑
+const RED_SPAN   = 0.20;  // 赤: 赤の最大値から −0.20 以下で最も濃い赤
+const NEAR       = 0.05;  // 境界値からこの幅以内を「境界に近い」と表示（iEOA）
+
+// t: 0〜1。緑・赤は 0 = 境界寄り / 1 = 境界から遠い。黄は 0 = 赤寄り / 1 = 緑寄り
+function zoneInfo(valveName, ieoa, source) {
+  const th = getThreshold(valveName, source);
+  const h = toH(ieoa), yMinH = th.rMaxH + 1, yMaxH = th.gMinH - 1;
+  let cat, t;
+  if (h >= th.gMinH)     { cat = "green";  t = Math.min(1, (h - th.gMinH) / (GREEN_SPAN * 100)); }
+  else if (h > th.rMaxH) { cat = "orange"; t = yMaxH > yMinH ? (h - yMinH) / (yMaxH - yMinH) : 0.5; }
+  else                   { cat = "red";    t = Math.min(1, (th.rMaxH - h) / (RED_SPAN * 100)); }
+  return {
+    cat, t, v: h / 100, th,
+    toGreen:  cat === "green" ? 0 : (th.gMinH - h) / 100,   // 緑になるまで iEOA をあといくつ上げるか
+    toYellow: cat === "red" ? (yMinH - h) / 100 : 0,        // 赤から黄になるまで
+    toRed:    cat === "red"   ? 0 : (h - th.rMaxH) / 100,   // あといくつ下がると赤か
+    overGreen: (h - toH(th.green)) / 100,                    // 凡例の緑境界値との差
+    underSevere: (toH(th.severe) - h) / 100                  // 凡例の赤境界値との差
+  };
+}
+
+// 区分内の位置を言葉にする（数値は小数2桁の iEOA）
+function zonePhrase(z) {
+  const nearH = Math.round(NEAR * 100);
+  if (z.cat === "green") {
+    return { phrase: Math.round(z.overGreen * 100) <= nearH ? "黄に近い緑" : "緑",
+             margin: `境界 ${z.th.green.toFixed(2)} より +${z.overGreen.toFixed(2)}` };
   }
-  const th = THRESHOLDS[valveName] || { severe: 0.65, severe_incl: false, moderate: 0.85 };
-  if (ieoa >= th.moderate) return { label: "低リスク（PPMの可能性は低い）", color: "green" };
-  const isRed = th.severe_incl ? ieoa <= th.severe : ieoa < th.severe;
-  return isRed
-    ? { label: "高度PPMの可能性", color: "red" }
-    : { label: "中等度PPMの可能性", color: "orange" };
+  if (z.cat === "orange") {
+    const g = Math.round(z.toGreen * 100), r = Math.round(z.toRed * 100);
+    return { phrase: g < r ? "緑に近い黄" : g > r ? "赤に近い黄" : "黄（緑と赤の中間）",
+             margin: `緑まで あと ${z.toGreen.toFixed(2)}／赤まで ${z.toRed.toFixed(2)}` };
+  }
+  return { phrase: Math.round(z.underSevere * 100) <= nearH ? "黄に近い赤" : "赤",
+           margin: `黄まで あと ${z.toYellow.toFixed(2)}` };
+}
+
+// 区分＋位置 → セルの背景色。文字色は常に濃色（コントラスト 4.5 以上を eval で確認）
+const COLOR_RAMP = {                       // [色相, 彩度%, 明度%]  t = 0 → t = 1
+  green:  [[ 80, 62, 74], [140, 45, 46]],  // 黄に近い緑（黄緑）→ 境界から遠い緑
+  orange: [[ 30,100, 63], [ 52,100, 64]],  // 赤に近い黄（橙）→ 緑に近い黄
+  red:    [[356, 86, 81], [356, 72, 62]]   // 黄に近い赤（薄い赤）→ 境界から遠い赤（橙には寄せず黄と区別する）
+};
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  const to = (x) => Math.round(x * 255).toString(16).padStart(2, "0");
+  return "#" + to(f(0)) + to(f(8)) + to(f(4));
+}
+function cellColor(valveName, ieoa, source) {
+  const z = zoneInfo(valveName, ieoa, source);
+  const [a, b] = COLOR_RAMP[z.cat];
+  let dh = b[0] - a[0];
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+  const hue = (a[0] + dh * z.t + 360) % 360;
+  return { bg: hslToHex(hue, a[1] + (b[1] - a[1]) * z.t, a[2] + (b[2] - a[2]) * z.t), fg: "#1c1c1e", cat: z.cat, t: z.t };
+}
+
+// 弁名・参照元・サイズから EOA を引く（術式をまたいで検索）
+function eoaOf(valveName, source, size) {
+  for (const proc of Object.values(valveData)) {
+    const e = proc?.[valveName]?.[source]?.[size];
+    if (e != null) return e;
+  }
+  return null;
+}
+
+// サイズごとに「緑を保てる BSA の上限」「赤にならない BSA の上限」（judgePMM と同じ規則で二分探索）
+// green / notRed は小数2桁に切り捨てた値（その BSA までは緑／赤にならない）
+function bsaLimits(valveName, size, source) {
+  const eoa = eoaOf(valveName, source, size);
+  if (eoa == null) return null;
+  const edge = (ok) => {
+    let lo = 0.05, hi = 10;
+    if (!ok(lo)) return 0;
+    if (ok(hi))  return hi;
+    for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (ok(mid)) lo = mid; else hi = mid; }
+    return lo;
+  };
+  const greenExact  = edge((b) => judgePMM(valveName, eoa / b, source).color === "green");
+  const notRedExact = edge((b) => judgePMM(valveName, eoa / b, source).color !== "red");
+  const floor2 = (x) => Math.floor(x * 100 + 1e-9) / 100;
+  return { eoa, greenExact, notRedExact, green: floor2(greenExact), notRed: floor2(notRedExact) };
+}
+
+// 選択中サイズの位置の説明（判定の言い換え＋BSA で見た上限までの距離）
+// bsa は画面と同じ小数2桁の値を渡す。差は「表示している上限」と「表示している BSA」の引き算で出す
+function positionSummary(valveName, size, source, bsa) {
+  const eoa = eoaOf(valveName, source, size);
+  if (eoa == null || !(bsa > 0)) return null;
+  const z = zoneInfo(valveName, eoa / bsa, source);
+  const L = bsaLimits(valveName, size, source);
+  const p = zonePhrase(z);
+  const b2 = (x) => x.toFixed(2);
+  const diff = (a, b) => b2(Math.max(0, Math.round((a - b) * 100) / 100));
+  let bsaText;
+  if (z.cat === "green")
+    bsaText = `このサイズで緑を保てるのは BSA ${b2(L.green)} m² まで（現在 ${b2(bsa)}、上限まで ${diff(L.green, bsa)} m²）`;
+  else if (z.cat === "orange")
+    bsaText = `緑になるのは BSA ${b2(L.green)} m² 以下（現在 ${b2(bsa)}、${diff(bsa, L.green)} m² 超過）。BSA ${b2(L.notRed)} m² を超えると赤`;
+  else
+    bsaText = `黄になるのは BSA ${b2(L.notRed)} m² 以下、緑は ${b2(L.green)} m² 以下（現在 ${b2(bsa)}）`;
+  return { ...p, bsaText, z, L };
+}
+
+// 早見表の行（メーカー表の BSA 0.1 刻み＋患者の行）
+function chartRows(valveName, bsa) {
+  const [lo, hi] = CHART_BSA[valveName] || [1.0, 2.5];
+  const rows = [];
+  for (let k = Math.round(lo * 10); k <= Math.round(hi * 10); k++) rows.push({ bsa: k / 10, patient: false });
+  if (bsa > 0) {
+    const same = rows.findIndex((r) => Math.abs(r.bsa - bsa) < 0.005);   // 表の行と同じ BSA なら、その行を患者の行にする
+    if (same >= 0) {
+      rows[same] = { bsa, patient: true, outOfRange: false };
+    } else {
+      let idx = rows.findIndex((r) => r.bsa > bsa);
+      if (idx < 0) idx = rows.length;
+      rows.splice(idx, 0, { bsa, patient: true, outOfRange: bsa < lo - 1e-9 || bsa > hi + 1e-9 });
+    }
+  }
+  return rows;
+}
+
+// BMI 30 以上の注意。判定区分（メーカー表・VARC III・ASE）は BMI 30 未満の基準。
+// 出典: アバラス①.pdf「この表はBMI < 30kg/m²の患者を対象としている。BMIが30kg/m²以上の患者には、
+//       PPMの異なる定義が推奨されている（VARC 3 を引用）。中等度PPM：EOAi ≦ 0.70、重症PPM：EOAi ≦ 0.55」
+//       Excel 7章の ASE 2024 表（BMI ≥ 30：> 0.70 / 0.56〜0.70 / ≤ 0.55）も同値。
+// 画面に出す BMI（小数1桁）で判断する（29.96 は「30.0」と表示されるので注意を出す）
+const HIGH_BMI = 30;
+function isHighBmi(h, w) {
+  if (!(h > 0 && w > 0)) return false;
+  return Number(calculateBMI(h, w).toFixed(1)) >= HIGH_BMI;
 }
 
 function validateInput(h, w) {
@@ -851,6 +1130,7 @@ function validateInput(h, w) {
     msgs.push(`体重が範囲外です（${WEIGHT_MIN}〜${WEIGHT_MAX} kg）`);
   return msgs;
 }
+// ==== PPM-CORE-END ====
 
 // ============================================================
 // ■ 現在の入力状態を取得
@@ -864,14 +1144,13 @@ function getCurrentState() {
   const size = $("size").value;
   const directVal = parseFloat($("bsaDirect").value);
   const usingDirect = !isNaN(directVal) && directVal >= 0.5 && directVal <= 3.0;
-  const bsa  = usingDirect ? directVal : calculateBSA(h, w);
+  // 画面に出す BSA（小数2桁）と同じ値で判定する（表示 2.40 なのに 2.3958 で判定、という食い違いを防ぐ）
+  const bsa  = Math.round((usingDirect ? directVal : calculateBSA(h, w)) * 100) / 100;
   const bmi  = calculateBMI(h, w);
   const eoa  = valveData[proc]?.[valve]?.[src]?.[size];
   const ieoa = eoa != null ? getIEOA(eoa, bsa) : null;
   const pmm  = ieoa != null ? judgePMM(valve, ieoa, src) : null;
-  const th   = src === "literature"
-    ? { severe: 0.65, severe_incl: true, moderate: 0.85, mod_label: "0.66〜0.85", sev_label: "≤ 0.65" }
-    : THRESHOLDS[valve] || { severe: 0.65, severe_incl: false, moderate: 0.85, mod_label: "0.65〜0.84", sev_label: "< 0.65" };
+  const th   = getThreshold(valve, src);
   return { h, w, bsa, bmi, proc, src, valve, size, eoa, ieoa, pmm, th, usingDirect };
 }
 
@@ -947,23 +1226,30 @@ function updateResult() {
     pn.innerHTML = "";
   }
 
-  if (s.eoa == null) {
+  // 弁・サイズが未選択、または身長・体重（BSA）が未入力のときは判定を出さない
+  const showJudge = s.eoa != null && s.bsa > 0;
+  renderBmiNotice(s, showJudge);
+  if (!showJudge) {
     $("resultBanner").innerHTML = "";
     $("detailList").style.display = "none";
     $("thresholdNote").textContent = "";
     $("voiceSection").style.display = "none";
     $("floatingBar").classList.remove("visible");
     stopSpeech();
+    renderRiskPosition(s);
     renderComparisonTable();
     return;
   }
 
-  // 判定バナー
+  // 判定バナー（区分の中での位置も添える）
+  const pos = positionSummary(s.valve, s.size, s.src, s.bsa);
   $("resultBanner").innerHTML = `
     <div class="result-banner ${s.pmm.color}">
       ${s.pmm.label}
-      <div class="ieoa-sub">iEOA = ${s.ieoa.toFixed(2)} cm²/m²</div>
+      <div class="ieoa-sub">iEOA = ${fmt2(s.ieoa)} cm²/m²</div>
+      ${pos ? `<div class="pos-sub">${pos.phrase}<span>${pos.margin}</span></div>` : ""}
     </div>`;
+  renderRiskPosition(s);
 
   // 詳細リスト
   $("detailList").style.display = "";
@@ -974,13 +1260,13 @@ function updateResult() {
     <div class="detail-row"><dt>EOA 参照元</dt><dd>${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}</dd></div>
     <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²</dd></div>
     <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
-    <div class="detail-row"><dt>iEOA</dt><dd>${s.ieoa.toFixed(2)} cm²/m²</dd></div>`;
+    <div class="detail-row"><dt>iEOA</dt><dd>${fmt2(s.ieoa)} cm²/m²</dd></div>`;
 
   // 判定基準ノート
   $("thresholdNote").textContent =
-    `判定基準（${s.valve}）: iEOA ≥ ${s.th.moderate} → 低リスク / ` +
+    `判定基準（${s.th.basis}）: iEOA ${s.th.green_label} → 低リスク / ` +
     `${s.th.mod_label} → 中等度 / ` +
-    `iEOA ${s.th.sev_label} → 高度`;
+    `iEOA ${s.th.sev_label} → 高度（iEOA は小数第2位に四捨五入して判定）`;
 
   // 音声コントロール表示
   $("voiceSection").style.display = "";
@@ -990,7 +1276,7 @@ function updateResult() {
   fb.classList.add("visible");
   $("fbDot").className = `fb-dot ${s.pmm.color}`;
   $("fbText").textContent = s.pmm.label;
-  $("fbIeoa").textContent = `iEOA ${s.ieoa.toFixed(2)}`;
+  $("fbIeoa").textContent = `iEOA ${fmt2(s.ieoa)}`;
 
   if ($("showEoa").checked) renderEoaTable();
   if ($("autoSpeak").checked) speakResult();
@@ -1051,14 +1337,14 @@ function renderComparisonTable() {
     html += `<div class="comp-group"><div class="comp-group-title">${valveName}</div>`;
     for (const [sz, eoa] of Object.entries(sizes)) {
       const ieoa = eoa / bsa;
-      const pmm  = judgePMM(valveName, ieoa);
+      const pmm  = judgePMM(valveName, ieoa, src);   // 比較表の参照元（文献なら ASE 2024）で判定
       const [lbl, cls] = colorLabel[pmm.color];
       const isCurrent = (s.valve === valveName && s.size === sz);
       html += `
         <div class="comp-row ${cls}${isCurrent ? " comp-current" : ""}">
           <span class="comp-size">${sz} mm</span>
           <span class="comp-eoa">EOA ${eoa.toFixed(2)} cm²</span>
-          <span class="comp-ieoa ${cls}">${ieoa.toFixed(2)}</span>
+          <span class="comp-ieoa ${cls}">${fmt2(ieoa)}</span>
           <span class="comp-badge ${cls}">${lbl}</span>
         </div>`;
     }
@@ -1068,9 +1354,246 @@ function renderComparisonTable() {
 }
 
 // ============================================================
-// ■ 音声読み上げ（Web Speech API）— 判定結果のみ読み上げ
+// ■ BMI 30 以上の注意（判定区分は BMI 30 未満の基準）
 // ============================================================
+function renderBmiNotice(s, showJudge) {
+  const box = $("bmiNotice");
+  if (showJudge && isHighBmi(s.h, s.w)) {
+    box.style.display = "block";
+    box.innerHTML = `<div class="bmi-notice"><span class="bn-title">⚠ BMI ${s.bmi.toFixed(1)}（30 以上）</span>`
+      + `この判定の区分・色・BSA 上限は <strong>BMI 30 未満</strong>の基準です。`
+      + `BMI 30 以上の患者には別の PPM 基準が推奨されています（VARC 3：中等度 iEOA ≤ 0.70、高度 ≤ 0.55）。`
+      + `以下の結果は参考としてご覧ください。</div>`;
+  } else {
+    box.style.display = "none";
+    box.innerHTML = "";
+  }
+}
+
+// ============================================================
+// ■ リスク位置の表示（iEOA ゲージ／メーカー表での位置）
+// ============================================================
+const GAUGE_MIN = 0.50, GAUGE_MAX = 1.30;
+const gaugeX   = (v) => (Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, v)) - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN) * 100;
+const clampPct = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const sizeText = (sz) => isNaN(sz) ? sz : sz + " mm";
+let rpView = "full";   // "full" = 表全体 / "near" = 患者の前後のみ
+try { rpView = localStorage.getItem("ppm_rp_view") || "full"; } catch {}
+
+function setRpView(v) {
+  rpView = v;
+  try { localStorage.setItem("ppm_rp_view", v); } catch {}
+  renderRiskPosition(getCurrentState());
+}
+
+// ゲージの背景（区分の切り替わりはくっきり、区分の中は濃淡）
+function gaugeBackground(valve, src) {
+  const stops = [];
+  let prev = null;
+  for (let k = Math.round(GAUGE_MIN * 100); k <= Math.round(GAUGE_MAX * 100); k++) {
+    const c = cellColor(valve, k / 100, src), x = gaugeX(k / 100);
+    if (prev && prev.cat !== c.cat) {
+      const mid = ((prev.x + x) / 2).toFixed(2);
+      stops.push(`${prev.bg} ${mid}%`, `${c.bg} ${mid}%`);
+    }
+    stops.push(`${c.bg} ${x.toFixed(2)}%`);
+    prev = { ...c, x };
+  }
+  return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+function renderGauge(s, sizes, pos) {
+  const th = s.th;
+  const eoaOf = (sz) => valveData[s.proc][s.valve][s.src][sz];
+  const selX = gaugeX(round2(s.ieoa));
+
+  // 同じ弁の他サイズ（近いものはラベルをまとめる）
+  const others = sizes.filter((sz) => sz !== s.size).map((sz) => {
+    const v = round2(eoaOf(sz) / s.bsa);
+    return { sz, x: gaugeX(v), over: v > GAUGE_MAX, under: v < GAUGE_MIN };
+  }).sort((a, b) => a.x - b.x);
+  const groups = [];
+  others.forEach((o) => {
+    const g = groups[groups.length - 1];
+    if (g && o.x - g[0].x < 10) g.push(o); else groups.push([o]);
+  });
+  let top = "";
+  groups.forEach((g) => {
+    g.forEach((o) => { top += `<i class="g-tick" style="left:${o.x}%"></i>`; });
+    const gx = g.reduce((a, o) => a + o.x, 0) / g.length;
+    const pre = g.some((o) => o.under) ? "‹" : "", post = g.some((o) => o.over) ? "›" : "";
+    const names = g.length >= 3 ? `${g[0].sz}〜${g[g.length - 1].sz}` : g.map((o) => o.sz).join("/");
+    // 端に寄ったラベルは内側へ揃えてはみ出しを防ぐ
+    const align = gx > 85 ? "right" : gx < 15 ? "left" : "center";
+    const pos = align === "right" ? `right:${100 - Math.max(gx, 0)}%` : `left:${gx}%`;
+    top += `<span class="g-lbl ${align}" style="${pos}">${pre}${names}${post}</span>`;
+  });
+
+  // 境界値のラベル: 赤側の境界は上段・緑側の境界は下段（黄の幅が狭い弁でも重ならない）。
+  // 針が近いときは針と反対側に寄せる
+  const bound = (x, val, row, side) => {
+    if (Math.abs(selX - x) < 12) side = selX >= x ? "l" : "r";
+    return `<i class="g-bound" style="left:${x}%"><span class="${side} ${row}">${val.toFixed(2)}</span></i>`;
+  };
+
+  return `
+    <div class="rp-head"><span class="rp-title">iEOA の位置（同じ弁の各サイズ）</span></div>
+    <div class="gauge" role="img" aria-label="${sizeText(s.size)} の iEOA ${fmt2(s.ieoa)}、${pos.phrase}">
+      <div class="g-top">${top}</div>
+      <div class="g-bar" style="background:${gaugeBackground(s.valve, s.src)}">
+        <i class="g-hatch" style="width:${gaugeX((th.rMax + th.yMin) / 2)}%"></i>
+        ${bound(gaugeX((th.rMax + th.yMin) / 2), th.severe, "t", "l")}${bound(gaugeX((th.yMax + th.gMin) / 2), th.green, "b", "r")}
+        <i class="g-needle" style="left:${selX}%"></i>
+      </div>
+      <div class="g-bottom">
+        <i class="g-pin-arrow" style="left:${selX}%"></i>
+        <span class="g-pin" style="left:${clampPct(selX, 16, 84)}%">${sizeText(s.size)}　${fmt2(s.ieoa)}</span>
+      </div>
+      <div class="g-axis"><span>${GAUGE_MIN.toFixed(2)} 以下</span><span>${GAUGE_MAX.toFixed(2)} 以上</span></div>
+    </div>
+    <div class="rp-note"><b>${sizeText(s.size)}：${pos.phrase}</b>　${pos.margin}<br>${pos.bsaText}</div>`;
+}
+
+function renderChart(s, sizes) {
+  const eoaOf = (sz) => valveData[s.proc][s.valve][s.src][sz];
+  const all = chartRows(s.valve, s.bsa);
+  const pIdx = all.findIndex((r) => r.patient);
+  let rows = all, hidAbove = 0, hidBelow = 0;
+  if (rpView === "near" && pIdx >= 0) {
+    const a = Math.max(0, pIdx - 4), b = Math.min(all.length, pIdx + 5);
+    rows = all.slice(a, b);
+    hidAbove = a;
+    hidBelow = all.length - b;
+  }
+  const grid = rows.map((r) => sizes.map((sz) => {
+    const ieoa = eoaOf(sz) / r.bsa;
+    return { txt: fmt2(ieoa), ...cellColor(s.valve, ieoa, s.src) };
+  }));
+  const LINE = "#1c1c1e", ncol = sizes.length + 1;
+  const gap = (n, from, to, mark) =>
+    `<tr class="rp-gap"><td colspan="${ncol}">${mark} BSA ${from.toFixed(1)}〜${to.toFixed(1)} の ${n} 行を省略</td></tr>`;
+
+  let body = hidAbove ? gap(hidAbove, all[0].bsa, all[hidAbove - 1].bsa, "▲") : "";
+  const [chartLo, chartHi] = CHART_BSA[s.valve] || [1.0, 2.5];
+  const outRow = (txt) => `<tr class="rp-gap"><td colspan="${ncol}">${txt}</td></tr>`;
+  rows.forEach((r, i) => {
+    if (r.patient && r.outOfRange && r.bsa > chartHi) body += outRow(`⋯ ここから下は表の範囲外（表は BSA ${chartHi.toFixed(1)} まで）⋯`);
+    let tr = r.patient
+      ? `<tr class="pt"><th class="rowh">患者<br>${r.bsa.toFixed(2)}${r.outOfRange ? "<br>範囲外" : ""}</th>`
+      : `<tr><th class="rowh">${r.bsa.toFixed(1)}</th>`;
+    sizes.forEach((sz, j) => {
+      const c = grid[i][j], sh = [];
+      if (i + 1 < rows.length && grid[i + 1][j].cat !== c.cat) sh.push(`inset 0 -2px 0 ${LINE}`);
+      if (j + 1 < sizes.length && grid[i][j + 1].cat !== c.cat) sh.push(`inset -2px 0 0 ${LINE}`);
+      const sel = r.patient && sz === s.size;
+      const cls = [sel ? "selc" : "", c.cat === "red" ? "hatch" : ""].filter(Boolean).join(" ");
+      tr += `<td${cls ? ` class="${cls}"` : ""} style="background-color:${c.bg};color:${c.fg}${sh.length ? ";box-shadow:" + sh.join(",") : ""}">${c.txt}</td>`;
+    });
+    body += tr + "</tr>";
+    if (r.patient && r.outOfRange && r.bsa < chartLo) body += outRow(`⋯ ここから上は表の範囲外（表は BSA ${chartLo.toFixed(1)} から）⋯`);
+  });
+  if (hidBelow) body += gap(hidBelow, all[all.length - hidBelow].bsa, all[all.length - 1].bsa, "▼");
+
+  const lim = sizes.map((sz) => bsaLimits(s.valve, sz, s.src));
+  const hd = (sz) => sz === s.size ? ' class="sel"' : "";
+  const limRow = (key) => lim.map((L, j) => `<td${sizes[j] === s.size ? ' class="self"' : ""}>${L[key].toFixed(2)}</td>`).join("");
+  const title = s.src === "literature" ? "文献採用値（ASE 2024 基準）"
+              : s.valve.includes("Perceval") ? "Excel の計算表（メーカー表なし・ASE 2024 基準）"
+              : "メーカー表（Excel の弁別シート）";
+  const rangeNote = s.src === "literature" ? "（BSA の範囲はメーカー表に合わせて表示）" : "";
+
+  return `
+    <div class="rp-head">
+      <span class="rp-title">${title}での位置</span>
+      <button type="button" class="rp-toggle" onclick="setRpView('${rpView === "near" ? "full" : "near"}')">${rpView === "near" ? "表全体を表示" : "患者の前後だけ"}</button>
+    </div>
+    <div class="rp-sub">行＝BSA（m²）${rangeNote}、列＝弁サイズ。<b>青＝この患者</b>（選択サイズは青枠）。太線＝判定区分の境界。</div>
+    <div class="rp-table-wrap">
+      <table class="rp-table${sizes.length >= 6 ? " dense" : ""}">
+        <thead>
+          <tr><th class="rowh">${isNaN(sizes[0]) ? "BSA" : "BSA＼mm"}</th>${sizes.map((sz) => `<th${hd(sz)}>${sz}</th>`).join("")}</tr>
+          <tr class="eoa"><th class="rowh">EOA</th>${sizes.map((sz) => `<th${hd(sz)}>${eoaOf(sz).toFixed(2)}</th>`).join("")}</tr>
+        </thead>
+        <tbody>${body}</tbody>
+        <tfoot>
+          <tr><th class="rowh">緑の上限</th>${limRow("green")}</tr>
+          <tr><th class="rowh">黄の上限</th>${limRow("notRed")}</tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="rp-legend">下2行＝そのサイズで緑・黄にとどまる BSA の上限（m²）。緑と赤は色が薄いほど区分の境界に近い（黄緑＝黄に近い緑、薄い赤＝黄に近い赤）。黄は橙ほど赤寄り、明るい黄ほど緑寄り。斜線＝赤（高度PPMの可能性）の区分。</div>`;
+}
+
+function renderRiskPosition(s) {
+  const box = $("riskPos");
+  const sizesObj = valveData[s.proc]?.[s.valve]?.[s.src];
+  if (s.eoa == null || !(s.bsa > 0) || !sizesObj) {
+    box.style.display = "none";
+    box.innerHTML = "";
+    return;
+  }
+  const sizes = Object.keys(sizesObj);
+  const pos = positionSummary(s.valve, s.size, s.src, s.bsa);
+  box.style.display = "";
+  box.innerHTML = `<div class="rp-section">${renderGauge(s, sizes, pos)}</div>
+                   <div class="rp-section">${renderChart(s, sizes)}</div>`;
+}
+
+// ============================================================
+// ■ 音声読み上げ — 判定結果のみ読み上げ
+// ============================================================
+// Gemini TTS で作成した録音（判定区分ごと。作成: 親フォルダの tools/make_tts_audio.py）を再生する。
+// 録音を読み込めないときは端末の読み上げ機能（Web Speech API）で同じ文を読む。
+const VOICE_FILES = { green: "./audio/ppm_green.mp3", orange: "./audio/ppm_orange.mp3", red: "./audio/ppm_red.mp3" };
+const VOICE_CREDIT = "Google Gemini（gemini-3.8-flash-tts）による合成音声";   // tools/tts_manifest.json の credit と同じ
+const voiceClips = {};   // 区分 → Audio（起動時に読み込み、タップと同時に再生できるようにしておく）
+let currentClip = null;
 const TTS_SUPPORTED = "speechSynthesis" in window;
+
+function preloadVoiceClips() {
+  if (typeof Audio === "undefined") return;
+  Object.entries(VOICE_FILES).forEach(([cat, url]) => {
+    const makeClip = (src) => {
+      const a = new Audio(src);
+      a.preload = "auto";
+      a.addEventListener("playing", () => { if (currentClip === a) setSpeakingUI(true); });
+      a.addEventListener("ended",   () => { if (currentClip === a) { currentClip = null; setSpeakingUI(false); } });
+      a.addEventListener("error",   () => { if (voiceClips[cat] === a) delete voiceClips[cat]; updateVoiceSource(); });
+      return a;
+    };
+    // fetch が使えない開き方（ファイルを直接開いた file:// など）は、音声ファイルを直接読む。読めたものだけ使う
+    const direct = () => {
+      const a = makeClip(url);
+      a.addEventListener("loadeddata", () => { voiceClips[cat] = a; updateVoiceSource(); }, { once: true });
+      a.load();
+    };
+    if (typeof fetch === "undefined" || typeof URL === "undefined" || location.protocol === "file:") { direct(); return; }
+    fetch(url)
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
+      .then((blob) => {
+        // blob にしておくと、オフラインのキャッシュからでも iOS で再生できる
+        voiceClips[cat] = makeClip(URL.createObjectURL(blob));
+        updateVoiceSource();
+      })
+      .catch(direct);
+  });
+}
+
+function updateVoiceSource() {
+  const el = $("voiceSrc");
+  if (!el) return;
+  const n = Object.keys(voiceClips).length;
+  el.textContent = n === Object.keys(VOICE_FILES).length
+    ? `音声：${VOICE_CREDIT}`
+    : "音声：端末の読み上げ機能（録音を読み込めないため）";
+}
+
+function setSpeakingUI(on) {
+  if (!$("btnSpeak")) return;
+  $("btnSpeak").style.display = on ? "none" : "flex";
+  $("btnStop").style.display  = on ? "flex" : "none";
+  $("speakingIndicator").style.display = on ? "block" : "none";
+}
 
 function buildSpeechText(s) {
   const ieoa = s.ieoa.toFixed(2);
@@ -1090,42 +1613,52 @@ function getJapaneseVoice() {
 }
 
 function speakResult() {
+  const s = getCurrentState();
+  if (s.eoa == null || !(s.bsa > 0)) return;
+  stopSpeech();
+  const rate = parseFloat($("voiceRate").value) || 1;
+  const clip = voiceClips[s.pmm.color];
+  if (clip) {
+    // await を挟まずに play() する（iOS はタップの直後でないと再生を許可しない）
+    currentClip = clip;
+    clip.currentTime = 0;
+    clip.playbackRate = rate;
+    clip.preservesPitch = true;   // 速度を変えても声の高さは変えない
+    const p = clip.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => { if (currentClip === clip) { currentClip = null; speakWithSynth(s, rate); } });
+    }
+    return;
+  }
+  speakWithSynth(s, rate);
+}
+
+// 端末の読み上げ機能（録音が使えないときの代わり）
+function speakWithSynth(s, rate) {
   if (!TTS_SUPPORTED) {
     alert("このブラウザは音声合成に対応していません。\nChrome / Edge / Safari をお試しください。");
     return;
   }
-  const s = getCurrentState();
-  if (s.eoa == null) return;
-  stopSpeech();
-
   const utter  = new SpeechSynthesisUtterance(buildSpeechText(s));
   utter.lang   = "ja-JP";
-  utter.rate   = parseFloat($("voiceRate").value);
+  utter.rate   = rate;
   utter.pitch  = 1.0;
   const voice  = getJapaneseVoice();
   if (voice) utter.voice = voice;
-
-  utter.onstart = () => {
-    $("btnSpeak").style.display = "none";
-    $("btnStop").style.display  = "flex";
-    $("speakingIndicator").style.display = "block";
-  };
-  utter.onend = utter.onerror = () => {
-    $("btnSpeak").style.display = "flex";
-    $("btnStop").style.display  = "none";
-    $("speakingIndicator").style.display = "none";
-  };
+  utter.onstart = () => setSpeakingUI(true);
+  utter.onend = utter.onerror = () => setSpeakingUI(false);
   speechSynthesis.speak(utter);
 }
 
 function stopSpeech() {
-  if (!TTS_SUPPORTED) return;
-  speechSynthesis.cancel();
-  if ($("btnSpeak")) {
-    $("btnSpeak").style.display = "flex";
-    $("btnStop").style.display  = "none";
-    $("speakingIndicator").style.display = "none";
+  if (currentClip) {
+    const c = currentClip;
+    currentClip = null;
+    c.pause();
+    c.currentTime = 0;
   }
+  if (TTS_SUPPORTED) speechSynthesis.cancel();
+  setSpeakingUI(false);
 }
 if (TTS_SUPPORTED && speechSynthesis.onvoiceschanged !== undefined) {
   speechSynthesis.onvoiceschanged = () => {};
@@ -1141,17 +1674,22 @@ const OPENAI_TEMP       = 0.4;
 
 function buildPrompt(mode) {
   const s = getCurrentState();
-  if (s.eoa == null) return null;
+  if (s.eoa == null || !(s.bsa > 0)) return null;
 
   const ctx = [
     `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m² / BMI: ${s.bmi.toFixed(1)}`,
     `【術式】${s.proc}（大動脈弁置換術）`,
     `【選択弁】${s.valve}  サイズ: ${isNaN(s.size) ? s.size : s.size + " mm"}`,
     `【EOA】${s.eoa.toFixed(2)} cm²（${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}）`,
-    `【iEOA】${s.ieoa.toFixed(2)} cm²/m²`,
+    `【iEOA】${fmt2(s.ieoa)} cm²/m²`,
     `【PPM判定】${s.pmm.label}`,
-    `【判定基準（${s.valve}）】iEOA ≥ ${s.th.moderate} → 低リスク / ${s.th.mod_label} → 中等度PPM / iEOA ${s.th.sev_label} → 高度PPM`,
-  ].join("\n");
+    `【判定基準（${s.th.basis}）】iEOA ${s.th.green_label} → 低リスク / ${s.th.mod_label} → 中等度PPM / iEOA ${s.th.sev_label} → 高度PPM`,
+  ];
+  const pos = positionSummary(s.valve, s.size, s.src, s.bsa);
+  if (pos) ctx.push(`【区分内の位置】${pos.phrase}（${pos.margin}）／${pos.bsaText}`);
+  if (isHighBmi(s.h, s.w))
+    ctx.push(`【注意】BMI ${s.bmi.toFixed(1)}（30 以上）。上記の判定区分は BMI 30 未満の基準。BMI 30 以上では別の基準が推奨される（VARC 3：中等度 iEOA ≤ 0.70、高度 ≤ 0.55）`);
+  const ctxText = ctx.join("\n");
 
   const systemMsg = [
     "あなたは心臓血管外科の弁膜症手術に精通した医療情報アシスタントです。",
@@ -1185,7 +1723,7 @@ function buildPrompt(mode) {
       "5. 術後フォローアップで留意すべき点",
     ],
   };
-  return { systemMsg, userMsg: [ctx, "", ...questions[mode]].join("\n") };
+  return { systemMsg, userMsg: [ctxText, "", ...questions[mode]].join("\n") };
 }
 
 async function askAI(mode) {
@@ -1202,7 +1740,7 @@ async function askAI(mode) {
   }
   const prompt = buildPrompt(mode);
   if (!prompt) {
-    area.innerHTML = `<div class="ai-error">弁・サイズが正しく選択されていません。</div>`;
+    area.innerHTML = `<div class="ai-error">身長・体重（または BSA）と弁・サイズを入力してください。</div>`;
     return;
   }
 
@@ -1353,6 +1891,7 @@ updateOnlineStatus();
 (function init() {
   populateSelect($("procedure"), Object.keys(valveData));
   updateValves();
+  preloadVoiceClips();
   window.addEventListener("beforeunload", stopSpeech);
 })();
 </script>

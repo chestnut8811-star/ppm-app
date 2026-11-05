@@ -3,20 +3,32 @@
  * オフライン時もキャッシュから動作できるようにする
  */
 
-const CACHE_NAME = "ppm-app-v3";
+const CACHE_NAME = "ppm-app-v5";
 
-// キャッシュ対象ファイル
+// キャッシュ対象ファイル（すべて必要）
 const CACHE_FILES = [
   "./index.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png"
 ];
+// 読み上げの録音（Gemini TTS）。無くてもアプリは端末の読み上げで動くので、取れたものだけ入れる
+const AUDIO_FILES = [
+  "./audio/ppm_green.mp3",
+  "./audio/ppm_orange.mp3",
+  "./audio/ppm_red.mp3"
+];
 
 // インストール時: 全ファイルをキャッシュ
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHE_FILES))
+    // HTTP キャッシュの古い版を拾わないよう、ネットワークから取り直す
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(CACHE_FILES.map((u) => new Request(u, { cache: "reload" })));
+      await Promise.all(AUDIO_FILES.map((u) =>
+        cache.add(new Request(u, { cache: "reload" })).catch(() => {})
+      ));
+    })
   );
   self.skipWaiting();
 });
