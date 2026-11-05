@@ -3,14 +3,15 @@
  * オフライン時もキャッシュから動作できるようにする
  */
 
-const CACHE_NAME = "ppm-app-v5";
+const CACHE_NAME = "ppm-app-v6";
 
 // キャッシュ対象ファイル（すべて必要）
 const CACHE_FILES = [
   "./index.html",
   "./manifest.json",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./apple-touch-icon.png"
 ];
 // 読み上げの録音（Gemini TTS）。無くてもアプリは端末の読み上げで動くので、取れたものだけ入れる
 const AUDIO_FILES = [
