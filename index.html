@@ -12,6 +12,7 @@
 
 <!-- iOS ホーム画面追加対応 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PPM判定">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
@@ -117,6 +118,54 @@ body {
   padding: 0 2px;
   flex-shrink: 0;
 }
+.install-banner .ib-icon { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; }
+.install-banner .ib-text { line-height: 1.4; }
+
+/* ホーム画面に追加: 画面下の入口 */
+.install-entry {
+  display: block; width: 100%; min-height: 48px; padding: 10px 14px;
+  border: 1.5px dashed #a5b4fc; border-radius: var(--radius-card);
+  background: #eef2ff; color: #3730a3; font-size: 0.86rem; font-weight: 700; cursor: pointer;
+}
+
+/* ホーム画面に追加: 手順のカード（iPhone など） */
+.a2hs[hidden], .a2hs-arrow[hidden] { display: none; }
+.a2hs { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.a2hs-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+.a2hs-card {
+  position: relative; width: 100%; max-width: 420px; max-height: 78vh; overflow: auto;
+  background: #fff; border-radius: 18px; padding: 16px 18px 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.a2hs-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.a2hs-head img { width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0; }
+.a2hs-title { font-size: 1.02rem; font-weight: 800; color: var(--c-text); }
+.a2hs-sub { font-size: 0.74rem; color: var(--c-muted); }
+.a2hs-close {
+  margin-left: auto; align-self: flex-start; width: 34px; height: 34px; border: none; border-radius: 50%;
+  background: var(--c-bg); color: var(--c-muted); font-size: 1rem; cursor: pointer; flex-shrink: 0;
+}
+.a2hs-steps { list-style: none; counter-reset: step; margin: 4px 0 0; padding: 0; }
+.a2hs-steps li {
+  counter-increment: step; position: relative; padding: 10px 0 10px 40px;
+  font-size: 0.92rem; line-height: 1.5; color: var(--c-text); border-bottom: 1px solid var(--c-border);
+}
+.a2hs-steps li:last-child { border-bottom: none; }
+.a2hs-steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 9px; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--c-primary); color: #fff; font-size: 0.85rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.a2hs-note { font-size: 0.78rem; line-height: 1.55; color: #6d4c41; background: #fff8e1; border-radius: 10px; padding: 8px 10px; margin-top: 10px; }
+.a2hs-done { font-size: 0.76rem; line-height: 1.55; color: var(--c-muted); margin-top: 10px; }
+/* iPhone の Safari（iOS 26）は画面右下の「…」から操作するので、その方向を示す */
+.a2hs-arrow {
+  position: fixed; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 401;
+  background: var(--c-primary); color: #fff; font-size: 0.8rem; font-weight: 800;
+  padding: 7px 12px; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  animation: a2hsBounce 1s ease-in-out infinite;
+}
+@keyframes a2hsBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .a2hs-arrow { animation: none; } }
 
 /* ============================================================
    スクロールボディ
@@ -654,11 +703,29 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
 <!-- オフライン通知 -->
 <div class="offline-banner" id="offlineBanner">📡 オフライン状態です。キャッシュから起動しています。</div>
 
-<!-- インストールバナー（Android / Chrome） -->
+<!-- ホーム画面に追加の案内（ホーム画面から開いていないときだけ。端末に合わせて動く） -->
 <div class="install-banner" id="installBanner">
-  <span class="ib-text">📲 ホーム画面に追加できます</span>
-  <button class="ib-btn" onclick="installApp()">追加する</button>
-  <button class="ib-close" onclick="closeInstallBanner()">✕</button>
+  <img class="ib-icon" src="./icon-192.png" alt="">
+  <span class="ib-text" id="ibText">ホーム画面に追加すると、アプリとしてすぐ開けます</span>
+  <button class="ib-btn" id="ibBtn" onclick="installApp()">追加のしかた</button>
+  <button class="ib-close" onclick="dismissInstallBanner()" aria-label="閉じる">✕</button>
+</div>
+
+<!-- ホーム画面に追加の手順（iPhone など、ボタンだけでは登録できない端末向け） -->
+<div class="a2hs" id="a2hs" role="dialog" aria-modal="true" aria-labelledby="a2hsTitle" hidden>
+  <div class="a2hs-backdrop" onclick="closeA2hs()"></div>
+  <div class="a2hs-card">
+    <div class="a2hs-head">
+      <img src="./icon-192.png" alt="">
+      <div>
+        <div class="a2hs-title" id="a2hsTitle">ホーム画面に追加</div>
+        <div class="a2hs-sub">PPM判定 をアプリとして開けるようにします</div>
+      </div>
+      <button type="button" class="a2hs-close" onclick="closeA2hs()" aria-label="閉じる">✕</button>
+    </div>
+    <div id="a2hsBody"></div>
+  </div>
+  <div class="a2hs-arrow" id="a2hsArrow" hidden>「…」はこの下 ▼</div>
 </div>
 
 <!-- ヘッダー -->
@@ -842,6 +909,9 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
     </label>
     <div id="eoaTableArea" class="eoa-wrapper" style="display:none;"></div>
   </div>
+
+  <!-- ホーム画面に追加（上の帯を閉じたあとも使える入口） -->
+  <button type="button" class="install-entry" id="installEntry" onclick="installApp()" style="display:none;">📲 ホーム画面に追加する（アプリとして開けるようにする）</button>
 
   <!-- ⑥ 注意書き -->
   <div class="notice">
@@ -1901,28 +1971,109 @@ if ("serviceWorker" in navigator) {
 }
 
 // ============================================================
-// ■ PWA: インストールプロンプト（Android / Chrome）
+// ■ PWA: ホーム画面に追加（端末に合わせて動く）
 // ============================================================
+// Android・パソコンの Chrome／Edge … ブラウザの確認画面（beforeinstallprompt）を出して、そのまま登録できる
+// iPhone・iPad … Web ページから登録する仕組みが無い（iOS 26 時点）ので、手順を案内する
+// LINE などのアプリ内ブラウザ … そこからは追加できないので、Safari／ブラウザで開き直すよう案内する
+// ホーム画面から開いているとき … 何も出さない
 let deferredPrompt = null;
+const UA = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+const TOUCH_MAC = /Macintosh/.test(UA) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1;  // iPadOS の Safari は Mac を名乗る
+const IS_IPAD = /iPad/.test(UA) || TOUCH_MAC;
+const IS_IOS = /iPhone|iPod/.test(UA) || IS_IPAD;
+const IS_ANDROID = /Android/.test(UA);
+const IN_APP_BROWSER = /Line\/|FBAN|FBAV|Instagram|MicroMessenger|KAKAOTALK/i.test(UA);
+const IOS_OTHER_BROWSER = IS_IOS && /CriOS|FxiOS|EdgiOS/.test(UA);
+const INSTALL_DISMISS_KEY = "ppm_install_banner_closed_at";
+const INSTALL_DISMISS_DAYS = 30;
+
+function isStandalone() {
+  try {
+    return (typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches)
+        || (typeof navigator !== "undefined" && navigator.standalone === true);
+  } catch { return false; }
+}
+
+function bannerClosedRecently() {
+  try {
+    const t = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
+    return Date.now() - t < INSTALL_DISMISS_DAYS * 24 * 3600 * 1000;
+  } catch { return false; }
+}
+
+function refreshInstallUI() {
+  const show = !isStandalone();
+  $("installEntry").style.display = show ? "" : "none";
+  $("installBanner").classList.toggle("show", show && !bannerClosedRecently());
+  $("ibText").textContent = IN_APP_BROWSER
+    ? "Safari やブラウザで開くと、ホーム画面に追加できます"
+    : "ホーム画面に追加すると、アプリとしてすぐ開けます";
+  $("ibBtn").textContent = deferredPrompt ? "追加する" : "追加のしかた";
+}
+
+function installApp() {
+  if (deferredPrompt) {   // Android・パソコンの Chrome／Edge: そのまま登録の確認画面へ
+    const p = deferredPrompt;
+    deferredPrompt = null;   // 確認画面は 1 回しか出せない
+    p.prompt();
+    Promise.resolve(p.userChoice)
+      .then((c) => { if (c && c.outcome === "accepted") hideInstallUI(); else refreshInstallUI(); })
+      .catch(refreshInstallUI);
+    return;
+  }
+  openA2hs();
+}
+
+// 端末に合わせた手順（iOS 26 の手順は SoftBank の FAQ の画面付き案内で確認）
+function a2hsGuide() {
+  if (IN_APP_BROWSER) return {
+    steps: ["画面の右上か右下にあるメニュー（「…」や「⋮」）をタップ", "「Safari で開く」（Android は「ブラウザで開く」）を選ぶ", "開いたページで、もう一度「ホーム画面に追加」を押す"],
+    note: "LINE などのアプリの中の画面からは、ホーム画面に追加できません。", arrow: false };
+  if (IOS_OTHER_BROWSER) return {
+    steps: ["アドレスバーの横（または画面の下）にある共有ボタン（□↑）をタップ", "「ホーム画面に追加」を選ぶ", "右上の「追加」をタップ"],
+    note: "うまくいかないときは、Safari でこのページを開いてから追加してください。", arrow: false };
+  if (IS_IPAD) return {
+    steps: ["画面右上の共有ボタン（□↑）をタップ", "「ホーム画面に追加」を選ぶ（見当たらなければ下へスクロール）", "右上の「追加」をタップ"],
+    note: "", arrow: false };
+  if (IS_IOS) return {
+    steps: ["画面右下の「…」（その他の操作）をタップ", "「共有」をタップ", "「その他」をタップ（すでに「ホーム画面に追加」が見えていれば不要）", "「ホーム画面に追加」をタップ", "右上の「追加」をタップ"],
+    note: "画面の下に共有ボタン（□↑）がある場合（iOS 18 以前など）は、そのボタンから「ホーム画面に追加」を選んでください。", arrow: true };
+  if (IS_ANDROID) return {
+    steps: ["画面右上のメニュー（⋮）をタップ", "「ホーム画面に追加」または「アプリをインストール」を選ぶ", "「インストール」（または「追加」）をタップ"],
+    note: "", arrow: false };
+  return {
+    steps: ["アドレスバーの右端にあるインストールのマーク、またはブラウザのメニューを開く", "「アプリをインストール」や「ホーム画面に追加」を選ぶ"],
+    note: "", arrow: false };
+}
+
+function openA2hs() {
+  const g = a2hsGuide();
+  $("a2hsBody").innerHTML =
+    `<ol class="a2hs-steps">${g.steps.map((t) => `<li>${t}</li>`).join("")}</ol>` +
+    (g.note ? `<p class="a2hs-note">${g.note}</p>` : "") +
+    `<p class="a2hs-done">追加すると、ホーム画面のこのアイコンから開けます（電波が無くても使えます）。</p>`;
+  $("a2hsArrow").hidden = !g.arrow;
+  $("a2hs").hidden = false;
+}
+function closeA2hs() { $("a2hs").hidden = true; }
+
+function dismissInstallBanner() {
+  try { localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now())); } catch {}
+  $("installBanner").classList.remove("show");   // 下の入口（installEntry）からはいつでも呼べる
+}
+function hideInstallUI() {
+  $("installBanner").classList.remove("show");
+  $("installEntry").style.display = "none";
+  closeA2hs();
+}
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  $("installBanner").classList.add("show");
+  refreshInstallUI();
 });
-
-function installApp() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => {
-    deferredPrompt = null;
-    closeInstallBanner();
-  });
-}
-function closeInstallBanner() {
-  $("installBanner").classList.remove("show");
-}
-window.addEventListener("appinstalled", closeInstallBanner);
+window.addEventListener("appinstalled", hideInstallUI);
 
 // ============================================================
 // ■ オフライン検知
@@ -1941,6 +2092,7 @@ updateOnlineStatus();
   populateSelect($("procedure"), Object.keys(valveData));
   updateValves();
   preloadVoiceClips();
+  refreshInstallUI();
   window.addEventListener("beforeunload", stopSpeech);
 })();
 </script>
