@@ -228,6 +228,17 @@ input:focus, select:focus {
   margin-top: 2px;
   letter-spacing: -0.01em;
 }
+/* BSA の出どころ: 計算値＝青、直接入力＝紫（判定の緑・黄・赤と混ざらない色） */
+.src-badge {
+  display: inline-block; margin-left: 5px; padding: 1px 7px; border-radius: 999px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0; text-transform: none; vertical-align: middle;
+  background: #e8f0fe; color: var(--c-primary); white-space: nowrap;
+}
+.metric-card .m-src { font-size: 0.62rem; color: var(--c-muted); margin-top: 3px; line-height: 1.35; }
+.metric-card.direct { background: #f3eefe; box-shadow: inset 0 0 0 2px #7c3aed; }
+.metric-card.direct .m-value { color: #6d28d9; }
+.metric-card.direct .m-src { color: #5b21b6; font-weight: 700; }
+.metric-card.direct .src-badge, .bsa-used.direct .src-badge, .src-badge.direct { background: #7c3aed; color: #fff; }
 
 /* ============================================================
    警告
@@ -536,10 +547,19 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
   font-size: 0.82rem; font-weight: 600; cursor: pointer;
   flex-shrink: 0; white-space: nowrap;
 }
-.bsa-direct-note {
-  display: none; font-size: 0.72rem; font-weight: 700;
-  color: var(--c-primary); margin-top: 6px;
+.bsa-direct-note { font-size: 0.72rem; font-weight: 700; margin-top: 6px; line-height: 1.5; }
+.bsa-direct-note.ok   { color: #6d28d9; }
+.bsa-direct-note.warn { color: var(--c-red); }
+.bsa-direct-note.idle { color: var(--c-muted); font-weight: 500; }
+#bsaDirect.in-use  { border-color: #7c3aed; background: #faf7ff; box-shadow: 0 0 0 3px rgba(124,58,237,0.16); }
+#bsaDirect.invalid { border-color: var(--c-red); box-shadow: 0 0 0 3px rgba(255,59,48,0.14); }
+/* 判定結果の欄: 判定に使った BSA */
+.bsa-used {
+  font-size: 0.78rem; color: var(--c-text); text-align: center;
+  background: var(--c-bg); border-radius: 10px; padding: 6px 10px; margin: -4px 0 12px;
 }
+.bsa-used b { font-size: 0.9rem; }
+.bsa-used.direct { background: #f3eefe; box-shadow: inset 0 0 0 1.5px #7c3aed; }
 
 /* ============================================================
    比較表
@@ -669,9 +689,10 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
         </div>
       </div>
       <div class="metrics-row">
-        <div class="metric-card">
-          <div class="m-label">BSA (m²)</div>
+        <div class="metric-card" id="bsaCard">
+          <div class="m-label">BSA (m²) <span class="src-badge" id="bsaSrc">計算値</span></div>
           <div class="m-value" id="bsaValue">—</div>
+          <div class="m-src" id="bsaSrcNote">身長・体重から計算（Mosteller 式）</div>
         </div>
         <div class="metric-card">
           <div class="m-label">BMI (kg/m²)</div>
@@ -687,7 +708,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
         </div>
         <button type="button" class="btn-bsa-clear" onclick="clearBsaDirect()">クリア</button>
       </div>
-      <div class="bsa-direct-note" id="bsaDirectNote">✔ BSA直接入力値を使用中</div>
+      <div class="bsa-direct-note idle" id="bsaDirectNote">空欄のときは、身長・体重からの計算値で判定します</div>
     </div>
   </div>
 
@@ -728,6 +749,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <div id="percevalNotice" style="display:none;"></div>
       <div id="bmiNotice" style="display:none;"></div>
       <div id="resultBanner"></div>
+      <div id="bsaUsed"></div>
       <div id="riskPos" style="display:none;"></div>
       <dl class="detail-list" id="detailList" style="display:none;"></dl>
       <div id="thresholdNote" class="threshold-note"></div>
@@ -1142,16 +1164,19 @@ function getCurrentState() {
   const src  = $("source").value;
   const valve= $("valve").value;
   const size = $("size").value;
-  const directVal = parseFloat($("bsaDirect").value);
+  const directText = String($("bsaDirect").value || "").trim();
+  const directVal = parseFloat(directText);
   const usingDirect = !isNaN(directVal) && directVal >= 0.5 && directVal <= 3.0;
+  const directInvalid = directText !== "" && !usingDirect;   // 入っているが範囲外 → 使わない（計算値で判定）
   // 画面に出す BSA（小数2桁）と同じ値で判定する（表示 2.40 なのに 2.3958 で判定、という食い違いを防ぐ）
-  const bsa  = Math.round((usingDirect ? directVal : calculateBSA(h, w)) * 100) / 100;
+  const bsaCalc = (h > 0 && w > 0) ? Math.round(calculateBSA(h, w) * 100) / 100 : 0;
+  const bsa  = usingDirect ? Math.round(directVal * 100) / 100 : bsaCalc;
   const bmi  = calculateBMI(h, w);
   const eoa  = valveData[proc]?.[valve]?.[src]?.[size];
   const ieoa = eoa != null ? getIEOA(eoa, bsa) : null;
   const pmm  = ieoa != null ? judgePMM(valve, ieoa, src) : null;
   const th   = getThreshold(valve, src);
-  return { h, w, bsa, bmi, proc, src, valve, size, eoa, ieoa, pmm, th, usingDirect };
+  return { h, w, bsa, bsaCalc, bmi, proc, src, valve, size, eoa, ieoa, pmm, th, usingDirect, directInvalid };
 }
 
 // ============================================================
@@ -1162,6 +1187,26 @@ const $ = (id) => document.getElementById(id);
 function clearBsaDirect() {
   $("bsaDirect").value = "";
   updateResult();
+}
+
+// BSA の出どころ（身長・体重からの計算値か、直接入力か）を、色と札で示す
+const bsaSourceLabel = (s) => (s.usingDirect ? "直接入力" : "計算値（身長・体重）");
+function renderBsaSource(s) {
+  const direct = s.usingDirect;
+  $("bsaCard").classList.toggle("direct", direct);
+  $("bsaSrc").textContent = direct ? "直接入力" : "計算値";
+  $("bsaSrcNote").textContent = direct
+    ? (s.bsaCalc > 0 ? `身長・体重からの計算値 ${s.bsaCalc.toFixed(2)} は使っていません` : "直接入力の値で判定")
+    : (s.bsaCalc > 0 ? "身長・体重から計算（Mosteller 式）" : "身長・体重を入力してください");
+  const inp = $("bsaDirect"), note = $("bsaDirectNote");
+  inp.classList.toggle("in-use", direct);
+  inp.classList.toggle("invalid", s.directInvalid);
+  note.className = "bsa-direct-note " + (direct ? "ok" : s.directInvalid ? "warn" : "idle");
+  note.textContent = direct
+    ? "✔ この値を BSA として判定に使用中"
+    : s.directInvalid
+      ? "⚠ 0.5〜3.0 の範囲外のため使っていません（身長・体重からの計算値で判定中）"
+      : "空欄のときは、身長・体重からの計算値で判定します";
 }
 
 function populateSelect(sel, items, fmt) {
@@ -1205,9 +1250,9 @@ function updateResult() {
   const s = getCurrentState();
   const warns = s.usingDirect ? [] : validateInput(s.h, s.w);
   $("warnings").innerHTML = warns.map(m => `<div class="warn-box">⚠ ${m}</div>`).join("");
-  $("bsaValue").textContent = s.bsa.toFixed(2);
+  $("bsaValue").textContent = s.bsa > 0 ? s.bsa.toFixed(2) : "—";
   $("bmiValue").textContent = (s.h > 0 && s.w > 0) ? s.bmi.toFixed(1) : "—";
-  $("bsaDirectNote").style.display = s.usingDirect ? "block" : "none";
+  renderBsaSource(s);
 
   // Perceval 注意バナー
   const isPerceval = s.valve && s.valve.includes("Perceval");
@@ -1231,6 +1276,7 @@ function updateResult() {
   renderBmiNotice(s, showJudge);
   if (!showJudge) {
     $("resultBanner").innerHTML = "";
+    $("bsaUsed").innerHTML = "";
     $("detailList").style.display = "none";
     $("thresholdNote").textContent = "";
     $("voiceSection").style.display = "none";
@@ -1249,6 +1295,9 @@ function updateResult() {
       <div class="ieoa-sub">iEOA = ${fmt2(s.ieoa)} cm²/m²</div>
       ${pos ? `<div class="pos-sub">${pos.phrase}<span>${pos.margin}</span></div>` : ""}
     </div>`;
+  // 判定に使った BSA と、その出どころ（計算値／直接入力）
+  $("bsaUsed").innerHTML = `<div class="bsa-used${s.usingDirect ? " direct" : ""}">判定に使った BSA ` +
+    `<b>${s.bsa.toFixed(2)} m²</b><span class="src-badge">${bsaSourceLabel(s)}</span></div>`;
   renderRiskPosition(s);
 
   // 詳細リスト
@@ -1258,7 +1307,7 @@ function updateResult() {
     <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
     <div class="detail-row"><dt>サイズ</dt><dd>${isNaN(s.size) ? s.size : s.size + " mm"}</dd></div>
     <div class="detail-row"><dt>EOA 参照元</dt><dd>${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}</dd></div>
-    <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²</dd></div>
+    <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²<span class="src-badge${s.usingDirect ? " direct" : ""}">${bsaSourceLabel(s)}</span></dd></div>
     <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
     <div class="detail-row"><dt>iEOA</dt><dd>${fmt2(s.ieoa)} cm²/m²</dd></div>`;
 
@@ -1677,7 +1726,7 @@ function buildPrompt(mode) {
   if (s.eoa == null || !(s.bsa > 0)) return null;
 
   const ctx = [
-    `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m² / BMI: ${s.bmi.toFixed(1)}`,
+    `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m²（${s.usingDirect ? "直接入力" : "身長・体重から計算"}） / BMI: ${s.bmi.toFixed(1)}`,
     `【術式】${s.proc}（大動脈弁置換術）`,
     `【選択弁】${s.valve}  サイズ: ${isNaN(s.size) ? s.size : s.size + " mm"}`,
     `【EOA】${s.eoa.toFixed(2)} cm²（${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}）`,
