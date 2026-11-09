@@ -3,7 +3,7 @@
  * オフライン時もキャッシュから動作できるようにする
  */
 
-const CACHE_NAME = "ppm-app-v10";
+const CACHE_NAME = "ppm-app-v11";
 
 // キャッシュ対象ファイル（すべて必要）
 const CACHE_FILES = [
@@ -21,6 +21,9 @@ const AUDIO_FILES = [
   "./audio/ppm_orange.mp3",
   "./audio/ppm_red.mp3"
 ];
+// アプリのページ。/ppm-app/ と /ppm-app/index.html は URL が違うだけで同じページ
+const APP_PAGE_URL = new URL("./index.html", self.location).href;
+const APP_PAGE_PATHS = [new URL("./", self.location).pathname, new URL(APP_PAGE_URL).pathname];
 
 // インストール時: 全ファイルをキャッシュ
 self.addEventListener("install", (event) => {
@@ -61,15 +64,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // ページを開く要求は、URL の形によらず index.html として扱う（インストール時と同じく取り直した版）。
+  // /ppm-app/ を別に保存すると、HTTP キャッシュに残った古い版を取り込み、次の版まで古いままになるため
+  const request = (event.request.mode === "navigate" && APP_PAGE_PATHS.includes(url.pathname))
+    ? new Request(APP_PAGE_URL, { cache: "reload" })
+    : event.request;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
+      return fetch(request).then((response) => {
         // 正常レスポンスのみキャッシュに追加
         if (response && response.status === 200 && response.type === "basic") {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) =>
-            cache.put(event.request, clone)
+            cache.put(request, clone)
           );
         }
         return response;
