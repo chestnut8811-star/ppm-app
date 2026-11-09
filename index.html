@@ -38,6 +38,7 @@
   --c-red:       #ff3b30;
   --c-ai:        #6366f1;
   --c-ai-bg:     #eef2ff;
+  --c-valve:     #3a3f47;
   --radius-card: 16px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -288,6 +289,18 @@ input:focus, select:focus {
 .metric-card.direct .m-value { color: #6d28d9; }
 .metric-card.direct .m-src { color: #5b21b6; font-weight: 700; }
 .metric-card.direct .src-badge, .bsa-used.direct .src-badge, .src-badge.direct { background: #7c3aed; color: #fff; }
+
+/* 弁種: 機械弁＝濃いグレーの塗り・角ばった札、生体弁＝白地に枠・丸い札。
+   判定の緑・黄・赤、BSA の青・紫と混ざらないよう無彩色にし、塗りの有無・形・文字で見分ける */
+.vt-badge {
+  display: inline-block; padding: 1px 8px; border: 1.5px solid var(--c-valve);
+  font-size: 0.72rem; font-weight: 800; line-height: 1.45; letter-spacing: 0; text-transform: none;
+  white-space: nowrap; vertical-align: middle;
+}
+.vt-badge:empty { display: none; }
+.vt-badge.mech { background: var(--c-valve); color: #fff; border-radius: 4px; }
+.vt-badge.bio  { background: #fff; color: var(--c-valve); border-radius: 999px; }
+.vt-badge.unknown { background: #fff; color: var(--c-valve); border-style: dashed; border-radius: 4px; }
 
 /* ============================================================
    警告
@@ -579,6 +592,12 @@ table.eoa-table th, table.eoa-table td {
   border: 1px solid var(--c-border); padding: 7px 9px; text-align: center;
 }
 table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75rem; }
+table.eoa-table tr.eoa-kind th {
+  text-align: left; font-size: 0.8rem; font-weight: 800;
+  background: #fff; color: var(--c-valve); border: 1.5px solid var(--c-valve);
+}
+table.eoa-table tr.eoa-kind.mech th { background: var(--c-valve); color: #fff; }
+table.eoa-table tr.eoa-kind.unknown th { border-style: dashed; }
 
 /* ============================================================
    BSA直接入力
@@ -621,14 +640,23 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
   min-height: 36px; font-size: 0.82rem; padding: 0 10px;
   border-radius: 8px; width: auto; flex-shrink: 0;
 }
+.comp-kind-head {
+  margin-bottom: 8px; padding: 5px 10px; border: 1.5px solid var(--c-valve); border-radius: 8px;
+  font-size: 0.84rem; font-weight: 800; color: var(--c-valve); background: #fff;
+}
+.comp-kind-head.mech { background: var(--c-valve); color: #fff; }
+.comp-kind-head.unknown { border-style: dashed; }
 .comp-group { margin-bottom: 14px; }
 .comp-group-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
   font-size: 0.78rem; font-weight: 700; color: var(--c-primary);
   padding: 6px 0 4px;
   border-bottom: 1px solid var(--c-border);
   margin-bottom: 4px;
   text-transform: uppercase; letter-spacing: 0.04em;
 }
+.comp-group-title > span:first-child { min-width: 0; }
+.comp-group-title .vt-badge { flex-shrink: 0; }
 .comp-row {
   display: flex; align-items: center;
   padding: 7px 6px; border-radius: 8px;
@@ -797,7 +825,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
         </select>
       </div>
       <div class="field">
-        <label class="field-label" for="valve">バルブ名</label>
+        <label class="field-label" for="valve">バルブ名 <span class="vt-badge" id="valveType"></span></label>
         <select id="valve"></select>
       </div>
       <div class="field">
@@ -921,6 +949,7 @@ table.eoa-table th { background: var(--c-bg); font-weight: 700; font-size: 0.75r
       <li>実際の臨床判断はガイドライン、文献、術前画像評価、術中判断を含めて総合的に行ってください。</li>
       <li>EOA 値は参照元により差がありうるため、施設採用値に差し替えて運用してください。</li>
       <li>PPM 判定閾値はメーカーによって異なります（高度PPM：Magna/INSPIRIS/Mosaic は ≤ 0.75、Epic/Regent は &lt; 0.80、On-X は &lt; 0.65、Avalus は ≤ 0.65。低リスク：Avalus・Magna/INSPIRIS は &gt; 0.85、On-X・Regent は ≥ 0.85）。Mosaic・Epic は原本の写真に凡例がなく、0.85 ちょうどの扱いは要確認（≥ 0.85 として判定）。SAPIEN 3 Ultra RESILIA (TAVI) は VARC III 基準（&gt; 0.85 / ≤ 0.65）。Perceval（スーチャレス）は ASE 2024 統一基準（≤ 0.65）を適用。各メーカー表と同じく、iEOA を小数第2位に四捨五入した値で判定します。</li>
+      <li>弁種（機械弁／生体弁）の表示は見分けるための目印です。判定の閾値は弁ごとに決まっており、弁種の表示では変わりません。</li>
       <li>BSA は Mosteller 式（√(身長cm × 体重kg ÷ 3600)）で計算し、小数第2位に丸めた値で判定します。</li>
       <li>判定区分は BMI 30 未満の基準です。BMI 30 以上の患者には別の基準が推奨されているため（VARC 3：中等度 iEOA ≤ 0.70、高度 ≤ 0.55。アバラスの EOAi チャートにも記載）、BMI 30 以上では結果欄に注意を表示します。</li>
       <li>判定結果の色の濃淡、「黄に近い緑」などの表示、サイズ別の BSA 上限は、判定区分の境界からの距離を示す目安です（臨床的な追加区分ではありません）。メーカー公称 EOA は平均値のため、境界付近の区分は特に幅をもって解釈してください。</li>
@@ -1008,6 +1037,42 @@ const CHART_BSA = {
   "SAPIEN 3 Ultra RESILIA (TAVI)":        [1.0, 2.1],
   "Perceval (パーシバル)":                  [1.0, 2.5]
 };
+
+// ============================================================
+// ■ 弁種（機械弁／生体弁）— 見分けるための表示専用。判定の閾値には使わない
+// ============================================================
+// 分類は Excel「EOA一覧」の弁種列と同じ。一次資料は eval/test_app_logic.mjs の VALVE_TYPE_BASIS
+const VALVE_KINDS = [
+  { key: "bio",  label: "生体弁" },   // 先に並べる（起動時の選択は、この先頭の弁＝Avalus になる）
+  { key: "mech", label: "機械弁" }
+];
+const UNKNOWN_KIND = { key: "unknown", label: "弁種未登録" };
+const VALVE_TYPE = {
+  "On-X (CryoLife)":                     { kind: "mech" },
+  "Avalus (アバラス)":                     { kind: "bio" },
+  "Epic Supra (エピック スープラ)":         { kind: "bio" },
+  "Epic Standard (エピック スタンダード)":   { kind: "bio" },
+  "PERIMOUNT Magna (マグナ)":              { kind: "bio" },
+  "INSPIRIS RESILIA (インスピリス)":         { kind: "bio" },
+  "Mosaic (モザイク)":                     { kind: "bio" },
+  "SJM Regent (リージェント)":              { kind: "mech" },
+  "SAPIEN 3 Ultra RESILIA (TAVI)":        { kind: "bio", sub: "TAVI" },
+  "Perceval (パーシバル)":                  { kind: "bio", sub: "スーチャレス" }
+};
+
+// 弁種を返す。key＝札の種類、text＝表示（スーチャレス・TAVI は括弧で添える）
+function valveTypeOf(valveName) {
+  const t = VALVE_TYPE[valveName];
+  const kind = VALVE_KINDS.find((k) => k.key === t?.kind) || UNKNOWN_KIND;
+  return { key: kind.key, text: t?.sub ? `${kind.label}（${t.sub}）` : kind.label };
+}
+
+// 弁の名前を弁種ごとに分ける（生体弁 → 機械弁の順。弁種が未登録の弁も一覧から落とさない）
+function valvesByKind(valveNames) {
+  return [...VALVE_KINDS, UNKNOWN_KIND]
+    .map((k) => ({ key: k.key, label: k.label, valves: valveNames.filter((n) => valveTypeOf(n).key === k.key) }))
+    .filter((g) => g.valves.length > 0);
+}
 
 // ============================================================
 // ■ 判定閾値（メーカー表の凡例・色分けを原本 PDF で確認 — バルブ別）
@@ -1289,6 +1354,36 @@ function populateSelect(sel, items, fmt) {
   });
 }
 
+// バルブ名の選択肢を、生体弁・機械弁の見出しで分けて並べる（値は弁の名前のまま）
+function populateValveSelect(sel, valveNames) {
+  sel.innerHTML = "";
+  valvesByKind(valveNames).forEach((group) => {
+    const g = document.createElement("optgroup");
+    g.label = group.label;
+    group.valves.forEach((name) => {
+      const o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+}
+
+// 弁種の札
+function valveTypeBadge(valveName) {
+  const t = valveTypeOf(valveName);
+  return `<span class="vt-badge ${t.key}">${t.text}</span>`;
+}
+
+// 選んだ弁の弁種を、バルブ名の見出しの札で示す
+function renderValveType(s) {
+  const el = $("valveType");
+  const t = valveTypeOf(s.valve);
+  el.textContent = s.valve ? t.text : "";
+  el.className = s.valve ? `vt-badge ${t.key}` : "vt-badge";
+}
+
 function toggleCard(bodyId, header) {
   const body = $(bodyId);
   const ch   = header.querySelector(".chevron");
@@ -1305,7 +1400,7 @@ function scrollToResult() {
 // ■ カスケード更新
 // ============================================================
 function updateValves() {
-  populateSelect($("valve"), Object.keys(valveData[$("procedure").value] || {}));
+  populateValveSelect($("valve"), Object.keys(valveData[$("procedure").value] || {}));
   updateSizes();
 }
 function updateSizes() {
@@ -1323,6 +1418,7 @@ function updateResult() {
   $("bsaValue").textContent = s.bsa > 0 ? s.bsa.toFixed(2) : "—";
   $("bmiValue").textContent = (s.h > 0 && s.w > 0) ? s.bmi.toFixed(1) : "—";
   renderBsaSource(s);
+  renderValveType(s);
 
   // Perceval 注意バナー
   const isPerceval = s.valve && s.valve.includes("Perceval");
@@ -1375,6 +1471,7 @@ function updateResult() {
   $("detailList").innerHTML = `
     <div class="detail-row"><dt>術式</dt><dd>${s.proc}</dd></div>
     <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
+    <div class="detail-row"><dt>弁種</dt><dd>${valveTypeBadge(s.valve)}</dd></div>
     <div class="detail-row"><dt>サイズ</dt><dd>${isNaN(s.size) ? s.size : s.size + " mm"}</dd></div>
     <div class="detail-row"><dt>EOA 参照元</dt><dd>${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}</dd></div>
     <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²<span class="src-badge${s.usingDirect ? " direct" : ""}">${bsaSourceLabel(s)}</span></dd></div>
@@ -1408,20 +1505,26 @@ function updateResult() {
 function renderEoaTable() {
   const proc = $("procedure").value;
   const src  = $("source").value;
-  let rows = [];
-  for (const [name, sources] of Object.entries(valveData[proc] || {})) {
-    for (const [sz, eoa] of Object.entries(sources[src] || {})) {
-      rows.push({ name, size: sz, eoa });
-    }
-  }
-  rows.sort((a, b) => a.name.localeCompare(b.name) || String(a.size).localeCompare(String(b.size), undefined, {numeric: true}));
+  const valves = valveData[proc] || {};
   let html = `<table class="eoa-table"><thead><tr>
     <th>バルブ名</th><th>サイズ</th><th>EOA (cm²)</th>
   </tr></thead><tbody>`;
-  rows.forEach(r => {
-    const szLabel = isNaN(r.size) ? r.size : r.size + " mm";
-    html += `<tr><td style="text-align:left;">${r.name}</td><td>${szLabel}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
-  });
+  // 生体弁・機械弁の帯で区切る（帯の中は名前順。スマホの幅で列が詰まらないよう、弁種の列は足さない）
+  for (const group of valvesByKind(Object.keys(valves))) {
+    const rows = [];
+    for (const name of group.valves) {
+      for (const [sz, eoa] of Object.entries(valves[name][src] || {})) {
+        rows.push({ name, size: sz, eoa });
+      }
+    }
+    if (rows.length === 0) continue;
+    rows.sort((a, b) => a.name.localeCompare(b.name) || String(a.size).localeCompare(String(b.size), undefined, {numeric: true}));
+    html += `<tr class="eoa-kind ${group.key}"><th colspan="3">${group.label}</th></tr>`;
+    rows.forEach(r => {
+      const szLabel = isNaN(r.size) ? r.size : r.size + " mm";
+      html += `<tr><td style="text-align:left;">${r.name}</td><td>${szLabel}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
+    });
+  }
   html += "</tbody></table>";
   $("eoaTableArea").innerHTML = html;
 }
@@ -1449,25 +1552,30 @@ function renderComparisonTable() {
   };
 
   let html = "";
-  for (const [valveName, sources] of Object.entries(valves)) {
-    const sizes = sources[src] || {};
-    if (Object.keys(sizes).length === 0) continue;
+  // 生体弁・機械弁の見出しごとに並べる（この参照元にデータのない見出しは出さない）
+  for (const group of valvesByKind(Object.keys(valves))) {
+    let groupHtml = "";
+    for (const valveName of group.valves) {
+      const sizes = valves[valveName][src] || {};
+      if (Object.keys(sizes).length === 0) continue;
 
-    html += `<div class="comp-group"><div class="comp-group-title">${valveName}</div>`;
-    for (const [sz, eoa] of Object.entries(sizes)) {
-      const ieoa = eoa / bsa;
-      const pmm  = judgePMM(valveName, ieoa, src);   // 比較表の参照元（文献なら ASE 2024）で判定
-      const [lbl, cls] = colorLabel[pmm.color];
-      const isCurrent = (s.valve === valveName && s.size === sz);
-      html += `
-        <div class="comp-row ${cls}${isCurrent ? " comp-current" : ""}">
-          <span class="comp-size">${sz} mm</span>
-          <span class="comp-eoa">EOA ${eoa.toFixed(2)} cm²</span>
-          <span class="comp-ieoa ${cls}">${fmt2(ieoa)}</span>
-          <span class="comp-badge ${cls}">${lbl}</span>
-        </div>`;
+      groupHtml += `<div class="comp-group"><div class="comp-group-title"><span>${valveName}</span>${valveTypeBadge(valveName)}</div>`;
+      for (const [sz, eoa] of Object.entries(sizes)) {
+        const ieoa = eoa / bsa;
+        const pmm  = judgePMM(valveName, ieoa, src);   // 比較表の参照元（文献なら ASE 2024）で判定
+        const [lbl, cls] = colorLabel[pmm.color];
+        const isCurrent = (s.valve === valveName && s.size === sz);
+        groupHtml += `
+          <div class="comp-row ${cls}${isCurrent ? " comp-current" : ""}">
+            <span class="comp-size">${sz} mm</span>
+            <span class="comp-eoa">EOA ${eoa.toFixed(2)} cm²</span>
+            <span class="comp-ieoa ${cls}">${fmt2(ieoa)}</span>
+            <span class="comp-badge ${cls}">${lbl}</span>
+          </div>`;
+      }
+      groupHtml += `</div>`;
     }
-    html += `</div>`;
+    if (groupHtml) html += `<div class="comp-kind-head ${group.key}">${group.label}</div>${groupHtml}`;
   }
   area.innerHTML = html || '<div class="comp-no-bsa">表示できるデータがありません</div>';
 }
