@@ -339,6 +339,19 @@ input:focus, select:focus {
 }
 .bmi-notice strong { color: #bf360c; }
 .bmi-notice .bn-title { display: block; font-weight: 800; color: #bf360c; margin-bottom: 2px; }
+.lit-notice {
+  background: #fff3e0;
+  border: 1.5px solid #e65100;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #4e342e;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.lit-notice strong { display: block; color: #bf360c; font-weight: 800; margin-bottom: 2px; }
+.lit-notice ul { margin: 4px 0 0 16px; padding: 0; }
+.lit-notice li { margin-bottom: 3px; }
 .perceval-notice ul { margin: 6px 0 0 16px; padding: 0; }
 .perceval-notice li { margin-bottom: 3px; }
 
@@ -841,6 +854,7 @@ table.eoa-table tr.eoa-kind.unknown th { border-style: dashed; }
       <span class="card-title">判定結果</span>
     </div>
     <div class="card-body">
+      <div id="litNotice" style="display:none;"></div>
       <div id="percevalNotice" style="display:none;"></div>
       <div id="bmiNotice" style="display:none;"></div>
       <div id="resultBanner"></div>
@@ -1414,6 +1428,17 @@ function updateSizes() {
   updateResult();
 }
 
+// 文献採用値を選んでいるときの注意（判定結果と比較表で同じ文を出す）
+function literatureNoticeHtml() {
+  return `<div class="lit-notice">
+    <strong>⚠ 文献採用値で判定中（メーカーのデータではありません）</strong>
+    <ul>
+      <li>EOA はメーカー公称値ではなく、文献から採った値です。</li>
+      <li>判定の基準も、弁ごとのメーカー基準ではなく ASE 2024 の統一基準です。</li>
+      <li>メーカー公称値に切り替えると、判定が変わることがあります。</li>
+    </ul></div>`;
+}
+
 function updateResult() {
   const s = getCurrentState();
   const warns = s.usingDirect ? [] : validateInput(s.h, s.w);
@@ -1422,6 +1447,11 @@ function updateResult() {
   $("bmiValue").textContent = (s.h > 0 && s.w > 0) ? s.bmi.toFixed(1) : "—";
   renderBsaSource(s);
   renderValveType(s);
+
+  // 文献採用値の注意
+  const ln = $("litNotice");
+  ln.style.display = s.src === "literature" ? "block" : "none";
+  ln.innerHTML = s.src === "literature" ? literatureNoticeHtml() : "";
 
   // Perceval 注意バナー
   const isPerceval = s.valve && s.valve.includes("Perceval");
@@ -1575,7 +1605,8 @@ function renderComparisonTable() {
     }
     if (groupHtml) html += `<div class="comp-kind-head ${group.key}">${group.label}</div>${groupHtml}`;
   }
-  area.innerHTML = html || '<div class="comp-no-bsa">表示できるデータがありません</div>';
+  area.innerHTML = (src === "literature" ? literatureNoticeHtml() : "")
+    + (html || '<div class="comp-no-bsa">表示できるデータがありません</div>');
 }
 
 // ============================================================
