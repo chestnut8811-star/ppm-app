@@ -1354,6 +1354,9 @@ function populateSelect(sel, items, fmt) {
   });
 }
 
+// サイズの表示。数字は「19 mm」、Perceval の S・M・L・XL はそのまま（画面のどこでも、これを使う）
+function sizeText(sz) { return isNaN(sz) ? sz : sz + " mm"; }
+
 // バルブ名の選択肢を、生体弁・機械弁の見出しで分けて並べる（値は弁の名前のまま）
 function populateValveSelect(sel, valveNames) {
   sel.innerHTML = "";
@@ -1407,7 +1410,7 @@ function updateSizes() {
   const proc  = $("procedure").value;
   const valve = $("valve").value;
   const src   = $("source").value;
-  populateSelect($("size"), Object.keys(valveData[proc]?.[valve]?.[src] || {}), s => isNaN(s) ? s : s + " mm");
+  populateSelect($("size"), Object.keys(valveData[proc]?.[valve]?.[src] || {}), sizeText);
   updateResult();
 }
 
@@ -1472,7 +1475,7 @@ function updateResult() {
     <div class="detail-row"><dt>術式</dt><dd>${s.proc}</dd></div>
     <div class="detail-row"><dt>バルブ名</dt><dd>${s.valve}</dd></div>
     <div class="detail-row"><dt>弁種</dt><dd>${valveTypeBadge(s.valve)}</dd></div>
-    <div class="detail-row"><dt>サイズ</dt><dd>${isNaN(s.size) ? s.size : s.size + " mm"}</dd></div>
+    <div class="detail-row"><dt>サイズ</dt><dd>${sizeText(s.size)}</dd></div>
     <div class="detail-row"><dt>EOA 参照元</dt><dd>${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}</dd></div>
     <div class="detail-row"><dt>BSA</dt><dd>${s.bsa.toFixed(2)} m²<span class="src-badge${s.usingDirect ? " direct" : ""}">${bsaSourceLabel(s)}</span></dd></div>
     <div class="detail-row"><dt>EOA</dt><dd>${s.eoa.toFixed(2)} cm²</dd></div>
@@ -1509,21 +1512,16 @@ function renderEoaTable() {
   let html = `<table class="eoa-table"><thead><tr>
     <th>バルブ名</th><th>サイズ</th><th>EOA (cm²)</th>
   </tr></thead><tbody>`;
-  // 生体弁・機械弁の帯で区切る（帯の中は名前順。スマホの幅で列が詰まらないよう、弁種の列は足さない）
+  // 生体弁・機械弁の帯で区切る。帯の中は選択肢・比較表と同じ順（弁はデータの順、サイズは小さい順。Perceval は S→M→L→XL）。
+  // スマホの幅で列が詰まらないよう、弁種の列は足さない
   for (const group of valvesByKind(Object.keys(valves))) {
-    const rows = [];
+    let rowsHtml = "";
     for (const name of group.valves) {
       for (const [sz, eoa] of Object.entries(valves[name][src] || {})) {
-        rows.push({ name, size: sz, eoa });
+        rowsHtml += `<tr><td style="text-align:left;">${name}</td><td>${sizeText(sz)}</td><td>${eoa.toFixed(2)}</td></tr>`;
       }
     }
-    if (rows.length === 0) continue;
-    rows.sort((a, b) => a.name.localeCompare(b.name) || String(a.size).localeCompare(String(b.size), undefined, {numeric: true}));
-    html += `<tr class="eoa-kind ${group.key}"><th colspan="3">${group.label}</th></tr>`;
-    rows.forEach(r => {
-      const szLabel = isNaN(r.size) ? r.size : r.size + " mm";
-      html += `<tr><td style="text-align:left;">${r.name}</td><td>${szLabel}</td><td>${r.eoa.toFixed(2)}</td></tr>`;
-    });
+    if (rowsHtml) html += `<tr class="eoa-kind ${group.key}"><th colspan="3">${group.label}</th></tr>${rowsHtml}`;
   }
   html += "</tbody></table>";
   $("eoaTableArea").innerHTML = html;
@@ -1567,7 +1565,7 @@ function renderComparisonTable() {
         const isCurrent = (s.valve === valveName && s.size === sz);
         groupHtml += `
           <div class="comp-row ${cls}${isCurrent ? " comp-current" : ""}">
-            <span class="comp-size">${sz} mm</span>
+            <span class="comp-size">${sizeText(sz)}</span>
             <span class="comp-eoa">EOA ${eoa.toFixed(2)} cm²</span>
             <span class="comp-ieoa ${cls}">${fmt2(ieoa)}</span>
             <span class="comp-badge ${cls}">${lbl}</span>
@@ -1603,7 +1601,6 @@ function renderBmiNotice(s, showJudge) {
 const GAUGE_MIN = 0.50, GAUGE_MAX = 1.30;
 const gaugeX   = (v) => (Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, v)) - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN) * 100;
 const clampPct = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
-const sizeText = (sz) => isNaN(sz) ? sz : sz + " mm";
 let rpView = "full";   // "full" = 表全体 / "near" = 患者の前後のみ
 try { rpView = localStorage.getItem("ppm_rp_view") || "full"; } catch {}
 
@@ -1906,7 +1903,7 @@ function buildPrompt(mode) {
   const ctx = [
     `【患者データ】身長: ${s.h} cm / 体重: ${s.w} kg / BSA: ${s.bsa.toFixed(2)} m²（${s.usingDirect ? "直接入力" : "身長・体重から計算"}） / BMI: ${s.bmi.toFixed(1)}`,
     `【術式】${s.proc}（大動脈弁置換術）`,
-    `【選択弁】${s.valve}  サイズ: ${isNaN(s.size) ? s.size : s.size + " mm"}`,
+    `【選択弁】${s.valve}  サイズ: ${sizeText(s.size)}`,
     `【EOA】${s.eoa.toFixed(2)} cm²（${s.valve && s.valve.includes("Perceval") && s.src === "manufacturer" ? "臨床推定値" : SOURCE_LABELS[s.src]}）`,
     `【iEOA】${fmt2(s.ieoa)} cm²/m²`,
     `【PPM判定】${s.pmm.label}`,
